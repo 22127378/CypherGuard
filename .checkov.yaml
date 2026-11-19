@@ -1,13 +1,15 @@
 # Repo-wide Checkov config. Justified exceptions live inline next to the resource
 # as "#checkov:skip=<ID>:<reason>" so reviewers see them in the diff.
+# Helm charts need required values, so scripts/scan.sh renders them and scans
+# the output with the kubernetes framework instead of the helm framework.
 framework:
   - terraform
   - dockerfile
   - github_actions
   - kubernetes
-  - helm
 skip-path:
   - tests/negative
+  - tests/policies
   - .terraform
 compact: true
 quiet: true

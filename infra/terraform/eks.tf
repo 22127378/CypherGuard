@@ -1,3 +1,15 @@
+data "aws_iam_session_context" "current" {
+  arn = data.aws_caller_identity.current.arn
+}
+
+locals {
+  gha_apply_role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${local.name}-gha-apply"
+  cluster_admin_arns = distinct(concat(
+    [data.aws_iam_session_context.current.issuer_arn, local.gha_apply_role_arn],
+    var.cluster_admin_arns,
+  ))
+}
+
 module "eks" {
   #checkov:skip=CKV_TF_1:Registry module pinned by version constraint; Dependabot tracks updates
   source  = "terraform-aws-modules/eks/aws"
@@ -28,13 +40,15 @@ module "eks" {
   }
   kms_key_deletion_window_in_days = 7
 
-  authentication_mode                      = "API"
-  enable_cluster_creator_admin_permissions = true
+  authentication_mode = "API"
 
-  # Extra cluster admins (your IAM user/role), so kubectl works whether the lab
-  # was created locally or by the pipeline role.
+  # Admins: whoever runs apply (local user or pipeline role), the pipeline apply
+  # role (so the deploy workflow works either way) and any extra ARNs.
+  # Built explicitly instead of enable_cluster_creator_admin_permissions to avoid
+  # a duplicate entry when the creator is also in the list.
+  enable_cluster_creator_admin_permissions = false
   access_entries = {
-    for i, arn in var.cluster_admin_arns : "admin-${i}" => {
+    for arn in local.cluster_admin_arns : replace(arn, "/[^a-zA-Z0-9]/", "-") => {
       principal_arn = arn
       policy_associations = {
         admin = {

@@ -46,3 +46,24 @@ resource "aws_ssm_parameter" "demo_app_greeting" {
   type  = "SecureString" # aws/ssm key; decrypt allowed via SSM for account principals
   value = "hello from CipherGuard"
 }
+
+# Kyverno verifies Cosign signatures stored in ECR. Pods cannot reach IMDS
+# (hop limit 1), so the admission controller gets its own read-only ECR role.
+module "kyverno_irsa" {
+  #checkov:skip=CKV_TF_1:Registry module pinned by version constraint; Dependabot tracks updates
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  version = "~> 5.48"
+
+  role_name = "${local.name}-kyverno"
+
+  oidc_providers = {
+    main = {
+      provider_arn               = module.eks.oidc_provider_arn
+      namespace_service_accounts = ["kyverno:kyverno-admission-controller"]
+    }
+  }
+
+  role_policy_arns = {
+    ecr = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+  }
+}

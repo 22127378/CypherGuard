@@ -1,0 +1,26 @@
+# Enforce = prevent run (bad requests are rejected).
+# Audit   = detect-only run (requests pass, violations land in PolicyReports).
+mode: Enforce
+
+images:
+  # ECR repository that only signed images may come from.
+  # <account>.dkr.ecr.ap-southeast-1.amazonaws.com/cipherguard/demo-app
+  repository: ""
+  # Cosign keyless identity: the build workflow on main.
+  signer:
+    subject: https://github.com/22127378/CypherGuard/.github/workflows/build.yml@refs/heads/main
+    issuer: https://token.actions.githubusercontent.com
+  rekorUrl: https://rekor.sigstore.dev
+
+# Namespaces holding application workloads: PSS "restricted" + ECR-only images.
+appNamespaces:
+  - demo
+
+# Platform namespaces exempt from the cluster-wide baseline (agents need host access).
+systemNamespaces:
+  - kube-system
+  - kube-public
+  - kube-node-lease
+  - kyverno
+  - falco
+  - wazuh

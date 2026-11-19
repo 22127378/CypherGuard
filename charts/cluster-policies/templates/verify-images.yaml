@@ -1,0 +1,51 @@
+# Step 0 / scenario H: only images signed by the main-branch build workflow,
+# with an SBOM attestation, may run. Tags are rewritten to the verified digest.
+apiVersion: policies.kyverno.io/v1
+kind: ImageValidatingPolicy
+metadata:
+  name: verify-image-signatures
+  labels:
+    {{- include "cp.labels" . | nindent 4 }}
+  annotations:
+    policies.kyverno.io/title: Verify Cosign signature and SBOM attestation
+    policies.kyverno.io/severity: high
+    cipherguard.io/mitre: T1610,T1195.002
+spec:
+  validationActions: {{ include "cp.actions" . }}
+  failurePolicy: Fail
+  webhookConfiguration:
+    timeoutSeconds: 30
+  evaluation:
+    background:
+      enabled: false
+  matchConstraints:
+    {{- include "cp.podRules" . | nindent 4 }}
+  matchImageReferences:
+    - glob: "{{ include "cp.repository" . }}@*"
+    - glob: "{{ include "cp.repository" . }}:*"
+  credentials:
+    providers: [amazon]
+  validationConfigurations:
+    mutateDigest: true
+    verifyDigest: true
+    required: true
+  attestors:
+    - name: cosign
+      cosign:
+        keyless:
+          identities:
+            - subject: {{ .Values.images.signer.subject | quote }}
+              issuer: {{ .Values.images.signer.issuer | quote }}
+        ctlog:
+          url: {{ .Values.images.rekorUrl | quote }}
+  attestations:
+    - name: sbom
+      intoto:
+        type: https://spdx.dev/Document
+  validations:
+    - expression: >-
+        images.containers.map(image, verifyImageSignatures(image, [attestors.cosign])).all(e, e > 0)
+      message: image is not signed by the CipherGuard build workflow on main
+    - expression: >-
+        images.containers.map(image, verifyAttestationSignatures(image, attestations.sbom, [attestors.cosign])).all(e, e > 0)
+      message: image has no SBOM attestation from the CipherGuard build workflow

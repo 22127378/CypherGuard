@@ -1,0 +1,27 @@
+# Attack step 3 (T1098): a stolen token is used to bind cluster-admin to a
+# ServiceAccount. RBAC should already deny it; this blocks it even if a
+# principal with bind rights is compromised.
+apiVersion: policies.kyverno.io/v1
+kind: ValidatingPolicy
+metadata:
+  name: deny-cluster-admin-to-serviceaccounts
+  labels:
+    {{- include "cp.labels" . | nindent 4 }}
+  annotations:
+    policies.kyverno.io/title: No cluster-admin bindings for ServiceAccounts
+    policies.kyverno.io/severity: critical
+    cipherguard.io/mitre: T1098
+spec:
+  validationActions: {{ include "cp.actions" . }}
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: ["rbac.authorization.k8s.io"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["clusterrolebindings", "rolebindings"]
+  validations:
+    - expression: >-
+        !(object.roleRef.name == 'cluster-admin' &&
+          object.?subjects.orValue([]).exists(s, s.kind == 'ServiceAccount'))
+      message: cluster-admin may not be bound to a ServiceAccount

@@ -1,0 +1,105 @@
+# Fixtures for `kyverno test`. The real demo-app Deployment is rendered from the
+# chart at test time (scripts/scan.sh policies) and appended to these.
+---
+# Root container in an app namespace: violates PSS restricted.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: root-pod
+  namespace: demo
+spec:
+  containers:
+    - name: c
+      image: registry.example.com/cipherguard/demo-app@sha256:0000000000000000000000000000000000000000000000000000000000000000
+      securityContext:
+        runAsUser: 0
+---
+# Image from Docker Hub in an app namespace: would skip signature checks.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: dockerhub-pod
+  namespace: demo
+spec:
+  securityContext:
+    runAsNonRoot: true
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+    - name: c
+      image: nginx:1.27
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop: ["ALL"]
+---
+# Attack step 3: privileged pod in another namespace.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: privileged-pod
+  namespace: default
+spec:
+  containers:
+    - name: c
+      image: busybox:1.36
+      securityContext:
+        privileged: true
+---
+# Scenario B: host filesystem + host PID namespace.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: escape-pod
+  namespace: default
+spec:
+  hostPID: true
+  volumes:
+    - name: host
+      hostPath:
+        path: /
+  containers:
+    - name: c
+      image: busybox:1.36
+      volumeMounts:
+        - name: host
+          mountPath: /host
+---
+# Plain unprivileged pod outside app namespaces: allowed by baseline.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: plain-pod
+  namespace: default
+spec:
+  containers:
+    - name: c
+      image: busybox:1.36
+---
+# Attack step 3: bind cluster-admin to the stolen ServiceAccount.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: escalate-sa
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: demo-app
+    namespace: demo
+---
+# Admin binding for a human group: allowed.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: admins-group
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - apiGroup: rbac.authorization.k8s.io
+    kind: Group
+    name: cipherguard:admins

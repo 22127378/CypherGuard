@@ -1,0 +1,36 @@
+# The demo-app ServiceAccount gets NO Role: it never talks to the Kubernetes API.
+#
+# Human "developer" access to this namespace: read pods, logs and services.
+# No exec/attach/port-forward (attack step 1), no secrets (step 3 / scenario E),
+# no workload creation (scenario C).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: demo-viewer
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "demo-app.labels" . | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "pods/log", "services", "endpoints", "events", "configmaps"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: demo-viewer
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "demo-app.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: demo-viewer
+subjects:
+  # Map an IAM role to this group with an EKS access entry (kubernetes_groups).
+  - apiGroup: rbac.authorization.k8s.io
+    kind: Group
+    name: cipherguard:developers

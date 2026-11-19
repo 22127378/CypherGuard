@@ -1,0 +1,96 @@
+# Pod Security Standards written as CEL (Kyverno 1.20 removed the legacy
+# podSecurity subrule).
+#
+# baseline   every namespace except platform agents. Blocks the container
+#            escape paths in attack step 3 and scenario B wherever the
+#            attacker tries them.
+# restricted app namespaces on top of baseline.
+apiVersion: policies.kyverno.io/v1
+kind: ValidatingPolicy
+metadata:
+  name: pod-security-baseline
+  labels:
+    {{- include "cp.labels" . | nindent 4 }}
+  annotations:
+    policies.kyverno.io/title: PSS baseline cluster-wide
+    policies.kyverno.io/severity: high
+    cipherguard.io/mitre: T1611
+spec:
+  validationActions: {{ include "cp.actions" . }}
+  failurePolicy: Fail
+  matchConstraints:
+    {{- include "cp.podRules" . | nindent 4 }}
+  matchConditions:
+    - name: not-platform-namespace
+      expression: "!(request.namespace in {{ include "cp.celList" .Values.systemNamespaces }})"
+  variables:
+    {{- include "cp.containersVar" . | nindent 4 }}
+  validations:
+    - expression: >-
+        variables.containers.all(c, !c.?securityContext.?privileged.orValue(false))
+      message: privileged containers are not allowed
+    - expression: >-
+        !object.spec.?hostPID.orValue(false) &&
+        !object.spec.?hostIPC.orValue(false) &&
+        !object.spec.?hostNetwork.orValue(false)
+      message: hostPID, hostIPC and hostNetwork are not allowed
+    - expression: >-
+        object.spec.?volumes.orValue([]).all(v, !has(v.hostPath))
+      message: hostPath volumes are not allowed
+    - expression: >-
+        variables.containers.all(c, c.?ports.orValue([]).all(p, p.?hostPort.orValue(0) == 0))
+      message: hostPort is not allowed
+    - expression: >-
+        variables.containers.all(c, c.?securityContext.?capabilities.?add.orValue([]).all(a,
+          a in ['AUDIT_WRITE', 'CHOWN', 'DAC_OVERRIDE', 'FOWNER', 'FSETID', 'KILL', 'MKNOD',
+                'NET_BIND_SERVICE', 'SETFCAP', 'SETGID', 'SETPCAP', 'SETUID', 'SYS_CHROOT']))
+      message: adding capabilities beyond the baseline set (e.g. SYS_ADMIN) is not allowed
+---
+apiVersion: policies.kyverno.io/v1
+kind: ValidatingPolicy
+metadata:
+  name: pod-security-restricted
+  labels:
+    {{- include "cp.labels" . | nindent 4 }}
+  annotations:
+    policies.kyverno.io/title: PSS restricted for app namespaces
+    policies.kyverno.io/severity: high
+    cipherguard.io/mitre: T1611
+spec:
+  validationActions: {{ include "cp.actions" . }}
+  failurePolicy: Fail
+  matchConstraints:
+    {{- include "cp.podRules" . | nindent 4 }}
+  matchConditions:
+    - name: app-namespaces
+      expression: "request.namespace in {{ include "cp.celList" .Values.appNamespaces }}"
+  variables:
+    {{- include "cp.containersVar" . | nindent 4 }}
+  validations:
+    - expression: >-
+        variables.containers.all(c,
+          c.?securityContext.?runAsNonRoot.orValue(object.spec.?securityContext.?runAsNonRoot.orValue(false)))
+      message: runAsNonRoot must be true
+    - expression: >-
+        object.spec.?securityContext.?runAsUser.orValue(1) != 0 &&
+        variables.containers.all(c, c.?securityContext.?runAsUser.orValue(1) != 0)
+      message: runAsUser 0 (root) is not allowed
+    - expression: >-
+        variables.containers.all(c, c.?securityContext.?allowPrivilegeEscalation.orValue(true) == false)
+      message: allowPrivilegeEscalation must be false
+    - expression: >-
+        variables.containers.all(c, 'ALL' in c.?securityContext.?capabilities.?drop.orValue([]))
+      message: containers must drop ALL capabilities
+    - expression: >-
+        variables.containers.all(c, c.?securityContext.?capabilities.?add.orValue([]).all(a, a == 'NET_BIND_SERVICE'))
+      message: only NET_BIND_SERVICE may be added
+    - expression: >-
+        variables.containers.all(c,
+          c.?securityContext.?seccompProfile.?type.orValue(
+            object.spec.?securityContext.?seccompProfile.?type.orValue('')) in ['RuntimeDefault', 'Localhost'])
+      message: seccompProfile must be RuntimeDefault or Localhost
+    - expression: >-
+        object.spec.?volumes.orValue([]).all(v, v.all(k, k in
+          ['name', 'configMap', 'csi', 'downwardAPI', 'emptyDir', 'ephemeral',
+           'persistentVolumeClaim', 'projected', 'secret']))
+      message: only restricted volume types are allowed

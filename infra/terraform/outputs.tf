@@ -48,3 +48,7 @@ output "attacker_private_ip" {
 output "eks_audit_log_group" {
   value = module.eks.cloudwatch_log_group_name
 }
+
+output "kyverno_role_arn" {
+  value = module.kyverno_irsa.iam_role_arn
+}

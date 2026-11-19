@@ -1,0 +1,62 @@
+name: deploy
+
+# Manual: deploy Kyverno, policies and the signed demo image to the lab cluster,
+# then run the smoke test. Requires approval on the "lab" environment.
+on:
+  # checkov:skip=CKV_GHA_7:Input only selects the policy mode of an already-signed image; no build artifact is produced
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "enforce = prevent run, detect = detect-only run (policies Audit, egress open)"
+        type: choice
+        options: [enforce, detect]
+        default: enforce
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-lab
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: ap-southeast-1
+  CLUSTER_NAME: cipherguard-eks
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: lab
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4.3.1
+        with:
+          role-to-assume: ${{ vars.AWS_APPLY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: gha-deploy-${{ github.run_id }}
+
+      - name: kubeconfig
+        run: aws eks update-kubeconfig --region "$AWS_REGION" --name "$CLUSTER_NAME"
+
+      - name: deploy and smoke test
+        env:
+          MODE: ${{ inputs.mode }}
+        run: scripts/deploy.sh --mode "$MODE" | tee deploy.log
+
+      - name: summary
+        if: always()
+        env:
+          MODE: ${{ inputs.mode }}
+        run: |
+          {
+            echo "### Deploy ($MODE)"
+            echo '```'
+            grep -E '^(ok|FAIL|Deploying|smoke test)' deploy.log || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

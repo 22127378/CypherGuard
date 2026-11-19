@@ -1,0 +1,66 @@
+{{- $mode := .Values.networkPolicy.mode -}}
+{{- if not (has $mode (list "enforce" "open")) -}}
+{{- fail "networkPolicy.mode must be enforce or open" -}}
+{{- end -}}
+# Default deny for every pod in the namespace.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "demo-app.labels" . | nindent 4 }}
+spec:
+  podSelector: {}
+  policyTypes: ["Ingress", "Egress"]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: demo-app
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "demo-app.labels" . | nindent 4 }}
+    cipherguard.io/network-mode: {{ $mode }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "demo-app.selector" . | nindent 6 }}
+  policyTypes: ["Ingress", "Egress"]
+  ingress:
+    # Smoke test / port-forward clients in the same namespace.
+    - from:
+        - podSelector: {}
+      ports:
+        - port: 8080
+          protocol: TCP
+  egress:
+    # DNS
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+    {{- if eq $mode "enforce" }}
+    # AWS APIs (STS for IRSA, SSM) over the NAT Gateway only. VPC-internal
+    # addresses (attacker host, Wazuh) and IMDS are excluded.
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - {{ .Values.networkPolicy.vpcCidr }}
+              - 169.254.169.254/32
+      ports:
+        - port: 443
+          protocol: TCP
+    {{- else }}
+    # Detect-only run: egress open so the exfiltration step can reach the attacker host.
+    - {}
+    {{- end }}

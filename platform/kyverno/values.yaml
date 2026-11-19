@@ -1,0 +1,35 @@
+# Kyverno chart values for the lab (single replica per controller to fit the node group).
+# The admission controller's IRSA role is set by scripts/deploy.sh:
+#   admissionController.rbac.serviceAccount.annotations.eks\.amazonaws\.com/role-arn
+
+admissionController:
+  replicas: 1
+  container:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        memory: 384Mi
+
+backgroundController:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      memory: 256Mi
+
+cleanupController:
+  replicas: 1
+
+reportsController:
+  replicas: 1
+
+features:
+  registryClient:
+    # Use the IRSA role (AWS SDK default chain) to read signatures from ECR.
+    credentialHelpers:
+      - default
+      - amazon

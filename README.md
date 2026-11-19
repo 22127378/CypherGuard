@@ -11,9 +11,13 @@ See [docs/attack-scenarios.md](docs/attack-scenarios.md) for the attack chain.
 infra/bootstrap/   persistent: S3 state, DynamoDB lock, budget, ECR, GitHub OIDC roles
 infra/terraform/   the lab: VPC, EKS, Wazuh, attacker host, IRSA role (destroyed every session)
 app/               demo application (attack target)
+charts/demo-app/   Helm chart: digest-only image, IRSA, no API token, PSS restricted, NetworkPolicy, RBAC
+charts/cluster-policies/  Kyverno 1.20 CEL policies (signatures, registries, PSS, RBAC guardrail)
+platform/          namespaces (native PSA) and Kyverno chart values
 .github/workflows/ security (scanners + negative tests), build (Trivy, push, SBOM, Cosign), terraform
 scripts/scan.sh    all scanners in pinned containers; CI and local use the same script
 tests/negative/    deliberately insecure fixtures the pipeline must block
+tests/policies/    Kyverno CLI test suite (attack fixtures must be rejected)
 attack/            attack simulation (receiver runs on the attacker host)
 docs/              scenarios and notes
 ```
@@ -43,6 +47,9 @@ terraform -chdir=infra/terraform output -raw wazuh_admin_password_command | bash
 terraform -chdir=infra/terraform output -raw wazuh_dashboard_tunnel | bash
 # open https://localhost:8443, user: admin
 
+make deploy       # Kyverno + policies (Enforce) + demo app, then smoke test
+make deploy-detect  # detect-only run: policies Audit, egress open
+
 make down         # destroy everything, then list leftovers
 ```
 
@@ -62,6 +69,21 @@ This needs the [Session Manager plugin](https://docs.aws.amazon.com/systems-mana
 
 `make scan`, `make scan-image` and `make negative` run the same checks locally (Docker required).
 Exceptions are written inline as `#checkov:skip=<ID>:<reason>` so they show up in review.
+
+## Cluster hardening (phase 4)
+
+| Control | Where | Attack step |
+|---|---|---|
+| Only images signed by `build.yml@main` with an SBOM attestation | `ImageValidatingPolicy` | 0, H |
+| App namespaces pull only from the lab ECR repo | `ValidatingPolicy` | 0 |
+| PSS restricted in `demo`, baseline everywhere else (no privileged, hostPath, hostPID) | `ValidatingPolicy` + native PSA | 3, B |
+| No cluster-admin for ServiceAccounts | `ValidatingPolicy` | 3 |
+| No Kubernetes API token in the pod; IRSA role limited to its own SSM path | chart + Terraform | 2, 3, I |
+| IMDS unreachable from pods (hop limit 1 + NetworkPolicy) | Terraform + chart | D |
+| Default-deny NetworkPolicy; egress only DNS and 443 outside the VPC | chart | 4, F |
+| Developers: read-only, no `exec`, no secrets | chart RBAC | 1, E |
+
+`--mode detect` switches every policy to Audit and opens egress for the detect-only run.
 
 ## Cost notes
 

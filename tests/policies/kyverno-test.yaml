@@ -1,0 +1,57 @@
+# Run with: scripts/scan.sh policies
+# policies.yaml and demo-app.yaml are rendered from the Helm charts at test time.
+apiVersion: cli.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: cipherguard-policies
+policies:
+  - policies.yaml
+resources:
+  - resources.yaml
+  - demo-app.yaml
+results:
+  # The real chart passes every app-namespace rule.
+  - policy: pod-security-restricted
+    kind: Deployment
+    resources: [demo-app]
+    result: pass
+  - policy: restrict-image-registries
+    kind: Deployment
+    resources: [demo-app]
+    result: pass
+
+  # PSS restricted
+  - policy: pod-security-restricted
+    kind: Pod
+    resources: [root-pod]
+    result: fail
+
+  # ECR-only registry
+  - policy: restrict-image-registries
+    kind: Pod
+    resources: [dockerhub-pod]
+    result: fail
+  - policy: restrict-image-registries
+    kind: Pod
+    resources: [root-pod]
+    result: pass
+
+  # PSS baseline everywhere else
+  - policy: pod-security-baseline
+    kind: Pod
+    resources: [privileged-pod, escape-pod]
+    result: fail
+  - policy: pod-security-baseline
+    kind: Pod
+    resources: [plain-pod]
+    result: pass
+
+  # RBAC guardrail
+  - policy: deny-cluster-admin-to-serviceaccounts
+    kind: ClusterRoleBinding
+    resources: [escalate-sa]
+    result: fail
+  - policy: deny-cluster-admin-to-serviceaccounts
+    kind: ClusterRoleBinding
+    resources: [admins-group]
+    result: pass

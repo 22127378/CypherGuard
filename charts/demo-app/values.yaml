@@ -1,0 +1,33 @@
+image:
+  # <account>.dkr.ecr.ap-southeast-1.amazonaws.com/cipherguard/demo-app
+  repository: ""
+  # Deploy by digest only (sha256:...). Tags are never used, so what runs is what was signed.
+  digest: ""
+
+replicas: 1
+
+serviceAccount:
+  name: demo-app
+  # IRSA role from Terraform output demo_app_role_arn.
+  roleArn: ""
+
+aws:
+  region: ap-southeast-1
+  greetingParam: /cipherguard/demo-app/greeting
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 250m
+    memory: 128Mi
+
+networkPolicy:
+  # enforce: default-deny ingress/egress with narrow allows (prevent run)
+  # open:    allow all egress (detect-only run, so exfiltration reaches the attacker host)
+  mode: enforce
+  # Pods may reach AWS APIs (STS, SSM) on 443 through the NAT Gateway.
+  # The VPC and IMDS ranges are excluded so 443 cannot be used to reach the
+  # attacker host or node credentials.
+  vpcCidr: 10.20.0.0/16

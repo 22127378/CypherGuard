@@ -1,0 +1,6 @@
+apiVersion: v2
+name: cluster-policies
+description: CipherGuard Kyverno admission policies (signed images, pod security, RBAC guardrails).
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

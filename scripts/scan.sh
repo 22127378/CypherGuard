@@ -5,6 +5,7 @@
 #   scripts/scan.sh dockerfile       hadolint on every Dockerfile
 #   scripts/scan.sh sast             Semgrep (Python, Dockerfile, GitHub Actions)
 #   scripts/scan.sh iac              Checkov (Terraform, Dockerfile, Actions, Kubernetes/Helm)
+#   scripts/scan.sh policies         Kyverno CLI tests against the rendered charts
 #   scripts/scan.sh image <ref>      Trivy: fail on fixable HIGH/CRITICAL
 #   scripts/scan.sh sbom <ref>       Syft SPDX JSON to stdout
 #   scripts/scan.sh all              everything except image/sbom
@@ -17,6 +18,8 @@ SEMGREP_IMG="semgrep/semgrep:1.186.0"
 CHECKOV_IMG="bridgecrew/checkov:3.4.5"
 TRIVY_IMG="aquasec/trivy:0.76.2"
 SYFT_IMG="anchore/syft:v1.57.2"
+HELM_IMG="alpine/helm:4.3.2"
+KYVERNO_IMG="ghcr.io/kyverno/kyverno-cli:v1.20.0"
 
 ROOT="$(git rev-parse --show-toplevel)"
 NEG="tests/negative"
@@ -42,8 +45,44 @@ sast() {
     --exclude "$NEG" --error --metrics=off --quiet
 }
 
+render_demo_app() {
+  docker run --rm -v "$ROOT/charts:/charts:ro" "$HELM_IMG" template demo-app /charts/demo-app -n demo \
+    --set image.repository="${1:-registry.example.com/cipherguard/demo-app}" \
+    --set image.digest="sha256:$(printf '0%.0s' $(seq 64))" "${@:2}"
+}
+
 iac() {
   run "$CHECKOV_IMG" --config-file /src/.checkov.yaml -d /src
+  # Rendered Helm output, as it would reach the cluster.
+  local tmp
+  tmp="$(mktemp -d)"
+  trap 'rm -rf "$tmp"' RETURN
+  render_demo_app >"$tmp/demo-app.yaml"
+  chmod -R a+rX "$tmp"
+  docker run --rm -v "$tmp:/rendered:ro" "$CHECKOV_IMG" --framework kubernetes --compact --quiet -d /rendered
+}
+
+policies() {
+  # Render the charts exactly as deployed (minus real account IDs), then run
+  # the Kyverno CLI test suite. Signature verification needs a live registry,
+  # so it is covered by `cosign verify` in build.yml and the smoke test.
+  local tmp repo="registry.example.com/cipherguard/demo-app"
+  tmp="$(mktemp -d)"
+  trap 'rm -rf "$tmp"' RETURN
+  cp "$ROOT"/tests/policies/* "$tmp/"
+  docker run --rm -v "$ROOT/charts:/charts:ro" "$HELM_IMG" template cp /charts/cluster-policies \
+    --set images.repository="$repo" --set mode=Enforce \
+    --show-only templates/restrict-registries.yaml \
+    --show-only templates/pod-security.yaml \
+    --show-only templates/rbac-guardrails.yaml >"$tmp/policies.yaml"
+  # Signature policy rendered against a repo no fixture uses: the CLI compiles
+  # its CEL but never tries to reach a registry.
+  docker run --rm -v "$ROOT/charts:/charts:ro" "$HELM_IMG" template cp /charts/cluster-policies \
+    --set images.repository=example.invalid/never-matches --show-only templates/verify-images.yaml \
+    >>"$tmp/policies.yaml"
+  render_demo_app "$repo" --show-only templates/deployment.yaml >"$tmp/demo-app.yaml"
+  chmod -R a+rX "$tmp" # kyverno-cli runs as non-root
+  docker run --rm -v "$tmp:/tests:ro" "$KYVERNO_IMG" test /tests --detailed-results
 }
 
 image() {
@@ -102,8 +141,8 @@ negative() {
 
 cmd="${1:-all}"; shift || true
 case "$cmd" in
-  secrets|dockerfile|sast|iac|negative) "$cmd" ;;
+  secrets|dockerfile|sast|iac|policies|negative) "$cmd" ;;
   image|sbom) "$cmd" "$@" ;;
-  all) secrets && dockerfile && sast && iac ;;
+  all) secrets && dockerfile && sast && iac && policies ;;
   *) echo "unknown command: $cmd" >&2; exit 2 ;;
 esac
