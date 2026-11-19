@@ -10,6 +10,7 @@ framework:
 skip-path:
   - tests/negative
   - tests/policies
+  - tests/detection
   - .terraform
 compact: true
 quiet: true
