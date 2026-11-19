@@ -2,13 +2,16 @@ TF_DIR    := infra/terraform
 BOOT_DIR  := infra/bootstrap
 TF        := terraform -chdir=$(TF_DIR)
 
-.PHONY: help bootstrap init plan up down kubeconfig leftovers fmt validate
+.PHONY: help bootstrap init plan up down kubeconfig leftovers fmt validate scan scan-image negative
 
 help:
 	@echo "bootstrap   one-time: create S3 state bucket + DynamoDB lock"
 	@echo "up          create the whole lab"
 	@echo "down        destroy the whole lab"
 	@echo "leftovers   list resources still tagged Project=CipherGuard"
+	@echo "scan        gitleaks, hadolint, Semgrep, Checkov (same as CI)"
+	@echo "scan-image  build demo image and run the Trivy gate"
+	@echo "negative    prove every scanner blocks a known-bad change"
 
 bootstrap:
 	terraform -chdir=$(BOOT_DIR) init
@@ -43,3 +46,13 @@ fmt:
 validate:
 	terraform -chdir=$(BOOT_DIR) init -backend=false >/dev/null && terraform -chdir=$(BOOT_DIR) validate
 	$(TF) init -backend=false >/dev/null && $(TF) validate
+
+scan:
+	scripts/scan.sh all
+
+scan-image:
+	docker build -t demo-app:local app
+	scripts/scan.sh image demo-app:local
+
+negative:
+	scripts/scan.sh negative

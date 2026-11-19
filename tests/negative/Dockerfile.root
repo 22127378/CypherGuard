@@ -1,0 +1,5 @@
+# DELIBERATELY INSECURE fixture for scripts/scan.sh negative.
+# Must be blocked by hadolint (USER root), Checkov (root user) and Trivy (old base).
+FROM alpine:3.10
+USER root
+CMD ["sh", "-c", "sleep infinity"]

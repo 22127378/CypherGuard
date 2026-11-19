@@ -1,0 +1,5 @@
+# Warnings fail the build (DL3002 "last USER should not be root" is a warning).
+failure-threshold: warning
+ignored:
+  # Debian package versions change with every security update; we apt-get upgrade instead of pinning.
+  - DL3008

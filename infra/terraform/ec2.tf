@@ -84,6 +84,7 @@ resource "aws_instance" "wazuh" {
   vpc_security_group_ids = [aws_security_group.wazuh.id]
   iam_instance_profile   = aws_iam_instance_profile.wazuh.name
   monitoring             = true
+  ebs_optimized          = true
 
   metadata_options {
     http_endpoint = "enabled"
@@ -127,12 +128,15 @@ resource "aws_iam_instance_profile" "attacker" {
 }
 
 resource "aws_instance" "attacker" {
+  #checkov:skip=CKV_AWS_88:Intentional: simulates an external host; no inbound from the internet (SG allows only the node group)
   ami                         = data.aws_ami.al2023.id
   instance_type               = var.attacker_instance_type
   subnet_id                   = module.vpc.public_subnets[0]
   associate_public_ip_address = true
   vpc_security_group_ids      = [aws_security_group.attacker.id]
   iam_instance_profile        = aws_iam_instance_profile.attacker.name
+  monitoring                  = true
+  ebs_optimized               = true
 
   metadata_options {
     http_endpoint = "enabled"

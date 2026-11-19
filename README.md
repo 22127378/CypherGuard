@@ -11,7 +11,9 @@ See [docs/attack-scenarios.md](docs/attack-scenarios.md) for the attack chain.
 infra/bootstrap/   persistent: S3 state, DynamoDB lock, budget, ECR, GitHub OIDC roles
 infra/terraform/   the lab: VPC, EKS, Wazuh, attacker host, IRSA role (destroyed every session)
 app/               demo application (attack target)
-.github/workflows/ terraform (plan on PR, approved apply/destroy) and build (push to ECR)
+.github/workflows/ security (scanners + negative tests), build (Trivy, push, SBOM, Cosign), terraform
+scripts/scan.sh    all scanners in pinned containers; CI and local use the same script
+tests/negative/    deliberately insecure fixtures the pipeline must block
 attack/            attack simulation (receiver runs on the attacker host)
 docs/              scenarios and notes
 ```
@@ -46,6 +48,20 @@ make down         # destroy everything, then list leftovers
 
 Access to the Wazuh and attacker hosts is through SSM Session Manager only (no SSH, no public ports).
 This needs the [Session Manager plugin](https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-install-plugin.html).
+
+## Pipeline gates (phase 3)
+
+| Gate | Tool | Fails on |
+|---|---|---|
+| Secrets | gitleaks (full history) | any detected secret |
+| Dockerfile | hadolint | warnings and above (e.g. `USER root`) |
+| SAST | Semgrep (Python, Dockerfile, Actions) | any finding (e.g. unpinned action, script injection) |
+| IaC | Checkov (Terraform, Dockerfile, Actions, K8s/Helm) | any failed check without an inline justified skip |
+| Image | Trivy | fixable HIGH/CRITICAL CVEs |
+| Supply chain | Syft + Cosign keyless | main only: SBOM attested, image signed by `build.yml@refs/heads/main` |
+
+`make scan`, `make scan-image` and `make negative` run the same checks locally (Docker required).
+Exceptions are written inline as `#checkov:skip=<ID>:<reason>` so they show up in review.
 
 ## Cost notes
 

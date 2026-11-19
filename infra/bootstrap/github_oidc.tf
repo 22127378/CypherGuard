@@ -116,6 +116,7 @@ resource "aws_iam_role_policy_attachment" "gha_apply_state" {
 }
 
 data "aws_iam_policy_document" "gha_apply_iam" {
+  #checkov:skip=CKV_AWS_109:Permissions management is required to create lab roles; scoped to cipherguard-* and guarded by explicit denies
   statement {
     sid = "ManageLabIam"
     actions = [

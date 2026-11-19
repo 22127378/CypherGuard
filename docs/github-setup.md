@@ -35,7 +35,7 @@ The apply role trusts only `repo:22127378/CypherGuard:environment:lab`, so apply
 
 Settings > Branches (or Rules > Rulesets) for `main`:
 - Require a pull request before merging (1 approval, require review from Code Owners)
-- Require status checks: `check`, `plan`, `build`
+- Require status checks: `check`, `plan`, `build`, `secrets`, `dockerfile`, `sast`, `iac`, `negative`
 - Block force pushes and deletions
 - Do not allow bypassing the above settings
 

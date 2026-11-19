@@ -26,6 +26,12 @@ variable "cluster_admin_arns" {
   default     = []
 }
 
+variable "azs" {
+  description = "Availability zones for the lab (pinned so the subnet layout never shifts)."
+  type        = list(string)
+  default     = ["ap-southeast-1a", "ap-southeast-1b"]
+}
+
 variable "vpc_cidr" {
   type    = string
   default = "10.20.0.0/16"

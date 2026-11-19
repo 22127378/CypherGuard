@@ -1,0 +1,14 @@
+# Repo-wide Checkov config. Justified exceptions live inline next to the resource
+# as "#checkov:skip=<ID>:<reason>" so reviewers see them in the diff.
+framework:
+  - terraform
+  - dockerfile
+  - github_actions
+  - kubernetes
+  - helm
+skip-path:
+  - tests/negative
+  - .terraform
+compact: true
+quiet: true
+soft-fail: false

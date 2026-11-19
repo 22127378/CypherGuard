@@ -54,6 +54,10 @@ locals {
 }
 
 resource "aws_s3_bucket" "state" {
+  #checkov:skip=CKV_AWS_18:Access logging needs a second bucket; CloudTrail data events cover this in phase 5
+  #checkov:skip=CKV_AWS_144:Cross-region replication is not needed for lab state (versioning enabled)
+  #checkov:skip=CKV_AWS_145:SSE-S3 is sufficient for lab state; a CMK adds cost with no extra control here
+  #checkov:skip=CKV2_AWS_62:No consumer for event notifications on the state bucket
   bucket = local.bucket_name
 
   lifecycle {
@@ -91,6 +95,9 @@ resource "aws_s3_bucket_lifecycle_configuration" "state" {
     id     = "expire-old-state-versions"
     status = "Enabled"
     filter {}
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
     noncurrent_version_expiration {
       noncurrent_days = 30
     }
@@ -114,6 +121,7 @@ resource "aws_s3_bucket_policy" "state" {
 }
 
 resource "aws_dynamodb_table" "lock" {
+  #checkov:skip=CKV_AWS_119:Lock table holds no data; AWS-owned key encryption is enough
   name         = local.lock_table
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "LockID"
@@ -124,6 +132,10 @@ resource "aws_dynamodb_table" "lock" {
   }
 
   server_side_encryption {
+    enabled = true
+  }
+
+  point_in_time_recovery {
     enabled = true
   }
 }

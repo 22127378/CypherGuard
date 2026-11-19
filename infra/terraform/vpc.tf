@@ -1,13 +1,10 @@
-data "aws_availability_zones" "available" {
-  state = "available"
-}
-
 locals {
-  azs  = slice(data.aws_availability_zones.available.names, 0, 2)
+  azs  = var.azs
   name = var.project
 }
 
 module "vpc" {
+  #checkov:skip=CKV_TF_1:Registry module pinned by version constraint; Dependabot tracks updates
   source  = "terraform-aws-modules/vpc/aws"
   version = "~> 5.16"
 

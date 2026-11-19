@@ -1,16 +1,18 @@
 name: build
 
-# PR: build only. Main: build and push to ECR (tag = commit SHA).
-# Phase 3 adds gitleaks/hadolint/Semgrep/Trivy, SBOM and Cosign signing here.
+# PR:   build -> Trivy (fail on fixable HIGH/CRITICAL). Nothing is pushed.
+# main: build -> Trivy -> push by digest -> SBOM (Syft) -> Cosign keyless sign + SBOM attestation.
 on:
   pull_request:
     paths:
       - "app/**"
+      - "scripts/scan.sh"
       - ".github/workflows/build.yml"
   push:
     branches: [main]
     paths:
       - "app/**"
+      - "scripts/scan.sh"
       - ".github/workflows/build.yml"
   workflow_dispatch:
 
@@ -19,27 +21,25 @@ permissions:
 
 env:
   AWS_REGION: ap-southeast-1
+  LOCAL_TAG: demo-app:${{ github.sha }}
 
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write
+      id-token: write # AWS OIDC + Cosign keyless (Fulcio)
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
-      - uses: docker/setup-buildx-action@v3
+      - name: build
+        run: docker build -t "$LOCAL_TAG" app
 
-      - name: build (PR, no push)
-        if: github.event_name == 'pull_request'
-        uses: docker/build-push-action@v6
-        with:
-          context: app
-          push: false
-          tags: demo-app:${{ github.sha }}
+      - name: trivy (gate)
+        run: scripts/scan.sh image "$LOCAL_TAG"
 
-      - uses: aws-actions/configure-aws-credentials@v4
+      # ---------- main only below ----------
+      - uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4.3.1
         if: github.event_name != 'pull_request'
         with:
           role-to-assume: ${{ vars.AWS_ECR_PUSH_ROLE_ARN }}
@@ -48,19 +48,58 @@ jobs:
 
       - id: ecr
         if: github.event_name != 'pull_request'
-        uses: aws-actions/amazon-ecr-login@v2
+        uses: aws-actions/amazon-ecr-login@7290e214a610b32bc0eef81748948b6d466a8783 # v2.2.0
 
       - id: push
-        name: build and push
+        name: push
         if: github.event_name != 'pull_request'
-        uses: docker/build-push-action@v6
-        with:
-          context: app
-          push: true
-          provenance: false
-          tags: ${{ steps.ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}:${{ github.sha }}
-
-      - name: summary
-        if: github.event_name != 'pull_request'
+        env:
+          REPO: ${{ steps.ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}
         run: |
-          echo "Pushed \`${{ steps.ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}@${{ steps.push.outputs.digest }}\`" >> "$GITHUB_STEP_SUMMARY"
+          docker tag "$LOCAL_TAG" "$REPO:$GITHUB_SHA"
+          docker push "$REPO:$GITHUB_SHA"
+          DIGEST=$(docker inspect --format '{{index .RepoDigests 0}}' "$REPO:$GITHUB_SHA" | cut -d@ -f2)
+          echo "ref=$REPO@$DIGEST" >> "$GITHUB_OUTPUT"
+
+      - name: sbom
+        if: github.event_name != 'pull_request'
+        run: scripts/scan.sh sbom "$LOCAL_TAG" > sbom.spdx.json
+
+      - uses: sigstore/cosign-installer@7e8b541eb2e61bf99390e1afd4be13a184e9ebc5 # v3.10.1
+        if: github.event_name != 'pull_request'
+        with:
+          cosign-release: v2.6.5
+
+      - name: sign and attest
+        if: github.event_name != 'pull_request'
+        env:
+          REF: ${{ steps.push.outputs.ref }}
+        run: |
+          cosign sign --yes "$REF"
+          cosign attest --yes --type spdxjson --predicate sbom.spdx.json "$REF"
+
+      - name: verify (same check Kyverno runs at admission)
+        if: github.event_name != 'pull_request'
+        env:
+          REF: ${{ steps.push.outputs.ref }}
+          IDENTITY: https://github.com/${{ github.repository }}/.github/workflows/build.yml@refs/heads/main
+        run: |
+          cosign verify "$REF" \
+            --certificate-identity "$IDENTITY" \
+            --certificate-oidc-issuer https://token.actions.githubusercontent.com > /dev/null
+          cosign verify-attestation "$REF" --type spdxjson \
+            --certificate-identity "$IDENTITY" \
+            --certificate-oidc-issuer https://token.actions.githubusercontent.com > /dev/null
+          {
+            echo "### Image"
+            echo "\`$REF\`"
+            echo
+            echo "Signed (Cosign keyless) and SBOM attested. Identity: \`$IDENTITY\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: github.event_name != 'pull_request'
+        with:
+          name: sbom
+          path: sbom.spdx.json
+          retention-days: 30

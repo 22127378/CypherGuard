@@ -20,7 +20,7 @@ def greeting() -> str:
     global _ssm
     if _ssm is None:
         _ssm = boto3.client("ssm", region_name=REGION)
-    return _ssm.get_parameter(Name=PARAM_NAME)["Parameter"]["Value"]
+    return _ssm.get_parameter(Name=PARAM_NAME, WithDecryption=True)["Parameter"]["Value"]
 
 
 class Handler(BaseHTTPRequestHandler):

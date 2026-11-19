@@ -1,0 +1,44 @@
+name: security
+
+# Repo-level shift-left gates. Runs on every PR and on main.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0 # scan full history, not just the last commit
+      - run: scripts/scan.sh secrets
+
+  dockerfile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - run: scripts/scan.sh dockerfile
+
+  sast:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - run: scripts/scan.sh sast
+
+  iac:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - run: scripts/scan.sh iac
+
+  # Proves the gates work: each scanner must reject a known-bad fixture.
+  negative:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - run: scripts/scan.sh negative

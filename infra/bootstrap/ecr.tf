@@ -2,6 +2,7 @@
 # build pipeline works even when the lab is down.
 
 resource "aws_ecr_repository" "demo_app" {
+  #checkov:skip=CKV_AWS_136:AES256 is sufficient for a public demo image; a CMK adds cost with no extra control here
   name                 = "${var.project}/demo-app"
   image_tag_mutability = "IMMUTABLE" # scenario H: tags cannot be overwritten
 
