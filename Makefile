@@ -2,7 +2,7 @@ TF_DIR    := infra/terraform
 BOOT_DIR  := infra/bootstrap
 TF        := terraform -chdir=$(TF_DIR)
 
-.PHONY: help bootstrap init plan up down kubeconfig leftovers fmt validate scan scan-image negative policies deploy deploy-detect smoke
+.PHONY: help bootstrap init plan up down kubeconfig leftovers fmt validate scan scan-image negative policies deploy deploy-detect smoke detection wazuh-sync
 
 help:
 	@echo "bootstrap   one-time: create S3 state bucket + DynamoDB lock"
@@ -13,7 +13,9 @@ help:
 	@echo "scan-image  build demo image and run the Trivy gate"
 	@echo "negative    prove every scanner blocks a known-bad change"
 	@echo "policies    Kyverno CLI tests against the rendered charts"
-	@echo "deploy      Kyverno + policies (Enforce) + demo app, then smoke test"
+	@echo "detection   validate Falco rules, replay Wazuh rules against sample events"
+	@echo "wazuh-sync  push detection/wazuh to the Wazuh manager over SSM"
+	@echo "deploy      Kyverno + policies (Enforce) + Falco + demo app + Wazuh rules, then smoke test"
 	@echo "deploy-detect  same, but policies Audit and egress open (detect-only run)"
 
 bootstrap:
@@ -71,3 +73,9 @@ deploy-detect:
 
 smoke:
 	scripts/smoke.sh --mode enforce
+
+detection:
+	scripts/scan.sh detection
+
+wazuh-sync:
+	scripts/wazuh-sync.sh --wait

@@ -12,6 +12,7 @@ set -euo pipefail
 REGION="${AWS_REGION:-ap-southeast-1}"
 PROJECT="cipherguard"
 KYVERNO_CHART_VERSION="3.10.0"
+FALCO_CHART_VERSION="9.2.2"
 ROOT="$(git rev-parse --show-toplevel)"
 
 MODE="enforce"
@@ -60,6 +61,19 @@ helm upgrade --install kyverno kyverno/kyverno \
   --wait --timeout 5m
 
 kubectl apply -f "$ROOT/platform/namespaces.yaml"
+
+# Runtime detection: Falco on every node, events to /var/log/falco for the Wazuh agent.
+helm repo add falcosecurity https://falcosecurity.github.io/charts >/dev/null 2>&1 || true
+helm repo update falcosecurity >/dev/null
+helm upgrade --install falco falcosecurity/falco \
+  --version "$FALCO_CHART_VERSION" \
+  --namespace falco --create-namespace \
+  -f "$ROOT/platform/falco/values.yaml" \
+  --set-file "customRules.cipherguard_rules\.yaml=$ROOT/detection/falco/cipherguard_rules.yaml" \
+  --wait --timeout 10m
+
+# Detection-as-code on the Wazuh manager (rules, agent group config, AWS inputs).
+"$ROOT/scripts/wazuh-sync.sh" --wait
 
 helm upgrade --install cluster-policies "$ROOT/charts/cluster-policies" \
   --set "images.repository=$REPO" \

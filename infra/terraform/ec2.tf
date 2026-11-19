@@ -52,6 +52,12 @@ data "aws_iam_policy_document" "wazuh" {
 
   # Read EKS control-plane logs from CloudWatch Logs (phase 5).
   statement {
+    sid       = "ListLogGroups"
+    actions   = ["logs:DescribeLogGroups"]
+    resources = ["*"]
+  }
+
+  statement {
     sid = "ReadEksLogs"
     actions = [
       "logs:DescribeLogGroups",
@@ -63,6 +69,25 @@ data "aws_iam_policy_document" "wazuh" {
       module.eks.cloudwatch_log_group_arn,
       "${module.eks.cloudwatch_log_group_arn}:*",
     ]
+  }
+
+  # Read CloudTrail logs from S3 (phase 5).
+  dynamic "statement" {
+    for_each = var.enable_cloudtrail ? [1] : []
+    content {
+      sid       = "ReadCloudTrailBucket"
+      actions   = ["s3:ListBucket", "s3:GetBucketLocation"]
+      resources = [aws_s3_bucket.cloudtrail[0].arn]
+    }
+  }
+
+  dynamic "statement" {
+    for_each = var.enable_cloudtrail ? [1] : []
+    content {
+      sid       = "ReadCloudTrailObjects"
+      actions   = ["s3:GetObject"]
+      resources = ["${aws_s3_bucket.cloudtrail[0].arn}/AWSLogs/*"]
+    }
   }
 }
 

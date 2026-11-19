@@ -61,9 +61,21 @@ variable "wazuh_instance_type" {
 }
 
 variable "wazuh_version" {
-  description = "Wazuh installer branch, e.g. 4.12 (https://packages.wazuh.com/<version>/wazuh-install.sh)."
+  description = "Wazuh installer branch, e.g. 4.14 (https://packages.wazuh.com/<version>/wazuh-install.sh)."
   type        = string
-  default     = "4.12"
+  default     = "4.14"
+}
+
+variable "wazuh_agent_version" {
+  description = "Wazuh agent RPM version for EKS nodes. Must not be newer than the manager."
+  type        = string
+  default     = "4.14.10-1"
+}
+
+variable "enable_cloudtrail" {
+  description = "Create a lab CloudTrail trail. Disable if the account already has one you can point Wazuh at."
+  type        = bool
+  default     = true
 }
 
 variable "attacker_instance_type" {

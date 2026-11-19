@@ -12,6 +12,9 @@ cd /root
 curl -sSfO "https://packages.wazuh.com/${wazuh_version}/wazuh-install.sh"
 bash ./wazuh-install.sh -a -i
 
+# Agent group for EKS nodes; its agent.conf is managed by scripts/wazuh-sync.sh.
+/var/ossec/bin/agent_groups -a -g eks-nodes -q || true
+
 # Push the generated admin password to SSM Parameter Store.
 ADMIN_PW=$(tar -O -xf wazuh-install-files.tar wazuh-install-files/wazuh-passwords.txt \
   | grep -A1 "indexer_username: 'admin'" | grep indexer_password | awk -F"'" '{print $2}')

@@ -1,0 +1,40 @@
+#!/bin/bash
+# EKS worker node: Wazuh agent + Falco event file with log rotation.
+set -euxo pipefail
+exec > >(tee -a /var/log/cipherguard-agent.log) 2>&1
+
+# Falco (DaemonSet, hostPath mount) writes JSON events here.
+install -d -m 0750 /var/log/falco
+cat > /etc/logrotate.d/falco <<'ROT'
+/var/log/falco/events.json {
+  size 50M
+  rotate 3
+  copytruncate
+  compress
+  missingok
+  notifempty
+}
+ROT
+
+rpm --import https://packages.wazuh.com/key/GPG-KEY-WAZUH
+cat > /etc/yum.repos.d/wazuh.repo <<'REPO'
+[wazuh]
+gpgcheck=1
+gpgkey=https://packages.wazuh.com/key/GPG-KEY-WAZUH
+enabled=1
+name=EL-$releasever - Wazuh
+baseurl=https://packages.wazuh.com/4.x/yum/
+protect=1
+REPO
+
+# Group "eks-nodes" pulls its agent.conf (Falco localfile) from the manager.
+WAZUH_MANAGER="${manager_ip}" \
+WAZUH_AGENT_GROUP="eks-nodes" \
+WAZUH_AGENT_NAME="$(hostname -s)" \
+  dnf install -y "wazuh-agent-${agent_version}"
+
+# Keep the agent version pinned to what the manager supports.
+sed -i 's/^enabled=1/enabled=0/' /etc/yum.repos.d/wazuh.repo
+
+systemctl daemon-reload
+systemctl enable --now wazuh-agent

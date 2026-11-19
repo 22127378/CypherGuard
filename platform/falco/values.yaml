@@ -1,0 +1,51 @@
+# Falco chart values for the lab (chart 9.2.2, Falco 0.45.2).
+# Custom rules are added by scripts/deploy.sh:
+#   --set-file customRules.cipherguard_rules\.yaml=detection/falco/cipherguard_rules.yaml
+
+driver:
+  # AL2023 kernels support the modern eBPF probe: no kernel module, no headers.
+  kind: modern_ebpf
+
+collectors:
+  # Container plugin: adds container.* and k8s.pod/ns names from the runtime.
+  containerEngine:
+    enabled: true
+
+falcoctl:
+  artifact:
+    # Install the default ruleset once; do not change rules under a running test.
+    install:
+      enabled: true
+    follow:
+      enabled: false
+
+falco:
+  priority: notice
+  json_output: true
+  json_include_output_property: true
+  json_include_output_fields_property: true
+  json_include_tags_property: true
+  stdout_output:
+    enabled: true
+  # The Wazuh agent on the node tails this file (group eks-nodes agent.conf).
+  file_output:
+    enabled: true
+    keep_alive: true
+    filename: /var/log/falco/events.json
+
+mounts:
+  volumes:
+    - name: falco-events
+      hostPath:
+        path: /var/log/falco
+        type: DirectoryOrCreate
+  volumeMounts:
+    - name: falco-events
+      mountPath: /var/log/falco
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    memory: 1Gi

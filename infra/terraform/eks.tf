@@ -98,6 +98,15 @@ module "eks" {
       labels = {
         workload = "lab"
       }
+
+      # Wazuh agent on each node; it ships Falco's JSON events (phase 5).
+      cloudinit_post_nodeadm = [{
+        content_type = "text/x-shellscript; charset=\"us-ascii\""
+        content = templatefile("${path.module}/templates/node-wazuh-agent.sh.tftpl", {
+          manager_ip    = aws_instance.wazuh.private_ip
+          agent_version = var.wazuh_agent_version
+        })
+      }]
     }
   }
 }
