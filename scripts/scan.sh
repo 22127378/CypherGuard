@@ -89,6 +89,28 @@ policies() {
 }
 
 detection() {
+  # 0. query-alerts.sh parser (phase 7): earliest alert per rule, benign excluded.
+  local qa
+  qa="$(mktemp -d)"
+  cat >"$qa/alerts.json" <<'JSON'
+{"timestamp":"2026-11-19T04:30:40.000+0000","rule":{"id":"100113","level":12,"groups":["cipherguard"]}}
+{"timestamp":"2026-11-19T04:30:50.000+0000","rule":{"id":"100113","level":12,"groups":["cipherguard"]}}
+{"timestamp":"2026-11-19T04:30:55.000+0000","rule":{"id":"100130","level":14,"groups":["cipherguard"]}}
+{"timestamp":"2026-11-19T04:29:00.000+0000","rule":{"id":"100110","level":10,"groups":["cipherguard"]}}
+{"timestamp":"2026-11-19T04:30:30.000+0000","rule":{"id":"5402","level":3,"groups":["syslog"]}}
+JSON
+  sed "s#ALERTS=/var/ossec/logs/alerts/alerts.json#ALERTS=$qa/alerts.json#" \
+    "$ROOT/detection/wazuh/query-alerts.sh" >"$qa/q.sh"
+  local since; since="$(date -u -d "2026-11-19T04:30:00Z" +%s 2>/dev/null || echo 1795062600)"
+  local got_first got_crit
+  got_first="$(bash "$qa/q.sh" first "$since" | awk '{print $1}' | tr '\n' ',')"
+  got_crit="$(bash "$qa/q.sh" crit "$since")"
+  rm -rf "$qa"
+  # first: 100113+100130 (100110 older, 5402 benign); crit: 3 events at level>=12.
+  [ "$got_first" = "100113,100130," ] || { echo "query-alerts first wrong: $got_first"; return 1; }
+  [ "$got_crit" = "3" ] || { echo "query-alerts crit wrong: $got_crit"; return 1; }
+  echo "query-alerts parser: ok"
+
   # 1. Falco: custom rules load cleanly next to the default ruleset.
   docker run --rm -v "$ROOT/detection/falco:/rules:ro" --entrypoint falco "$FALCO_IMG" \
     -V /etc/falco/falco_rules.yaml -V /rules/cipherguard_rules.yaml 2>&1 | tee /tmp/cg-falco-validate.log

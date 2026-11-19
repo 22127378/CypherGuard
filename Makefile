@@ -2,7 +2,7 @@ TF_DIR    := infra/terraform
 BOOT_DIR  := infra/bootstrap
 TF        := terraform -chdir=$(TF_DIR)
 
-.PHONY: help bootstrap init plan up down kubeconfig leftovers fmt validate scan scan-image negative policies deploy deploy-detect smoke detection wazuh-sync attack attack-detect
+.PHONY: help bootstrap init plan up down kubeconfig leftovers fmt validate scan scan-image negative policies deploy deploy-detect smoke detection wazuh-sync attack attack-detect measure baseline
 
 help:
 	@echo "bootstrap   one-time: create S3 state bucket + DynamoDB lock"
@@ -19,6 +19,8 @@ help:
 	@echo "deploy-detect  same, but policies Audit and egress open (detect-only run)"
 	@echo "attack-detect  run the simulated attack chain (detect-only)"
 	@echo "attack         run the simulated attack chain (prevent run)"
+	@echo "measure        run detect-only chain and report Wazuh alert latency"
+	@echo "baseline       generate normal traffic, then check for critical false positives"
 
 bootstrap:
 	terraform -chdir=$(BOOT_DIR) init
@@ -87,3 +89,9 @@ attack-detect:
 
 attack:
 	attack/run-attack.sh --mode enforce
+
+measure:
+	scripts/measure-latency.sh
+
+baseline:
+	scripts/baseline.sh
