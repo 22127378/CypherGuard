@@ -105,6 +105,7 @@ module "eks" {
         content = templatefile("${path.module}/templates/node-wazuh-agent.sh.tftpl", {
           manager_ip    = aws_instance.wazuh.private_ip
           agent_version = var.wazuh_agent_version
+          ar_script     = file("${path.module}/../../detection/wazuh/active-response/cipherguard-isolate.sh")
         })
       }]
     }

@@ -1,0 +1,24 @@
+<!-- cipherguard:ar:begin -->
+<!-- Managed by scripts/wazuh-sync.sh; edits here are overwritten. -->
+<!-- Active Response: isolate the offending pod's container on the node. -->
+<ossec_config>
+  <command>
+    <name>cipherguard-isolate</name>
+    <executable>cipherguard-isolate.sh</executable>
+    <timeout_allowed>no</timeout_allowed>
+  </command>
+
+  <!--
+    Fire only in the prevent run (AR is enabled by scripts/deploy.sh --mode
+    enforce via an agent group), on high-severity container alerts:
+    container escape (100114), IMDS theft (100113), agent tampering (100117),
+    and the exfiltration correlation (100130). location=local runs the script
+    on the node that produced the alert.
+  -->
+  <active-response>
+    <command>cipherguard-isolate</command>
+    <location>local</location>
+    <rules_id>100113,100114,100117,100130</rules_id>
+  </active-response>
+</ossec_config>
+<!-- cipherguard:ar:end -->

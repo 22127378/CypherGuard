@@ -107,6 +107,8 @@ detection() {
   sed -e 's|__REGION__|ap-southeast-1|g' -e 's|__EKS_LOG_GROUP__|/aws/eks/cipherguard-eks/cluster|g' \
       -e 's|__CLOUDTRAIL_BUCKET__|cipherguard-cloudtrail-123456789012|g' \
       "$ROOT/detection/wazuh/ossec-aws.xml" >"$tmp/ossec-aws.xml"
+  cp "$ROOT/detection/wazuh/ossec-ar.xml" "$tmp/ossec-ar.xml"
+  cp "$ROOT/detection/wazuh/active-response/cipherguard-isolate.sh" "$tmp/cipherguard-isolate.sh"
   chmod -R a+rX "$tmp"
   docker run --rm -v "$tmp:/tests:ro" --entrypoint bash "$WAZUH_IMG" -c '
     set -e
@@ -114,9 +116,10 @@ detection() {
     cp -an /var/ossec/data_tmp/permanent/var/ossec/. /var/ossec/
     cp -an /var/ossec/data_tmp/exclusion/var/ossec/. /var/ossec/
     cp /tests/rules/*.xml /var/ossec/etc/rules/
+    install -o root -g wazuh -m 0750 /tests/cipherguard-isolate.sh /var/ossec/active-response/bin/cipherguard-isolate.sh
     chown -R wazuh:wazuh /var/ossec/etc
     /var/ossec/bin/verify-agent-conf -f /tests/agent.conf
-    cat /tests/ossec-aws.xml >> /var/ossec/etc/ossec.conf
+    cat /tests/ossec-aws.xml /tests/ossec-ar.xml >> /var/ossec/etc/ossec.conf
     /var/ossec/bin/wazuh-analysisd -t
     /var/ossec/bin/wazuh-modulesd -t
     /var/ossec/bin/wazuh-db

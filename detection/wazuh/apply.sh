@@ -36,6 +36,15 @@ install -o wazuh -g wazuh -m 0660 "$SRC/shared/eks-nodes/agent.conf" "$OSSEC/etc
 sed -i '/<!-- cipherguard:aws:begin -->/,/<!-- cipherguard:aws:end -->/d' "$OSSEC/etc/ossec.conf"
 cat "$SRC/ossec-aws.xml" >>"$OSSEC/etc/ossec.conf"
 
+# Active Response block (present only when the prevent run enabled it).
+sed -i '/<!-- cipherguard:ar:begin -->/,/<!-- cipherguard:ar:end -->/d' "$OSSEC/etc/ossec.conf"
+if [ -f "$SRC/ossec-ar.xml" ]; then
+  cat "$SRC/ossec-ar.xml" >>"$OSSEC/etc/ossec.conf"
+  echo "Active Response enabled"
+else
+  echo "Active Response disabled"
+fi
+
 "$OSSEC/bin/wazuh-analysisd" -t || restore
 
 systemctl restart wazuh-manager

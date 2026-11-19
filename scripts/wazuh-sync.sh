@@ -4,13 +4,20 @@
 #
 #   scripts/wazuh-sync.sh            sync once (fails if the manager is not ready)
 #   scripts/wazuh-sync.sh --wait     retry for up to 20 min while the manager installs
+#   scripts/wazuh-sync.sh --ar       also enable Active Response (prevent run only)
 set -euo pipefail
 
 REGION="${AWS_REGION:-ap-southeast-1}"
 PROJECT="cipherguard"
 ROOT="$(git rev-parse --show-toplevel)"
 WAIT=0
-[ "${1:-}" = "--wait" ] && WAIT=1
+AR=0
+for a in "$@"; do
+  case "$a" in
+    --wait) WAIT=1 ;;
+    --ar) AR=1 ;;
+  esac
+done
 
 ACCOUNT="$(aws sts get-caller-identity --query Account --output text)"
 INSTANCE="$(aws ec2 describe-instances --region "$REGION" \
@@ -33,6 +40,14 @@ sed -i -e "s|__REGION__|$REGION|g" -e "s|__EKS_LOG_GROUP__|$LOG_GROUP|g" -e "s|_
 if ! aws s3api head-bucket --bucket "$BUCKET" >/dev/null 2>&1; then
   echo "No lab CloudTrail bucket; CloudTrail input disabled."
   sed -i '/cipherguard:cloudtrail:begin/,/cipherguard:cloudtrail:end/d' "$STAGE/ossec-aws.xml"
+fi
+
+# AR is opt-in: apply.sh merges ossec-ar.xml only when it is in the bundle.
+if [ "$AR" = 0 ]; then
+  rm -f "$STAGE/ossec-ar.xml"
+  echo "Active Response: off (detect-only)"
+else
+  echo "Active Response: on (prevent run)"
 fi
 
 BUNDLE="$(tar czf - -C "$STAGE" . | base64 -w0)"

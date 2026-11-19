@@ -73,7 +73,11 @@ helm upgrade --install falco falcosecurity/falco \
   --wait --timeout 10m
 
 # Detection-as-code on the Wazuh manager (rules, agent group config, AWS inputs).
-"$ROOT/scripts/wazuh-sync.sh" --wait
+# Active Response only in the prevent run, so it does not cut short the
+# detect-only run while we are measuring alerts.
+AR_FLAG=""
+[ "$MODE" = "enforce" ] && AR_FLAG="--ar"
+"$ROOT/scripts/wazuh-sync.sh" --wait $AR_FLAG
 
 helm upgrade --install cluster-policies "$ROOT/charts/cluster-policies" \
   --set "images.repository=$REPO" \
