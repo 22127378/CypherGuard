@@ -3,7 +3,10 @@
 Secure container pipeline with Kubernetes runtime detection (EKS + Kyverno + Falco + Wazuh).
 Region: `ap-southeast-1` (Singapore). Pod access to AWS: IRSA.
 
-See [docs/attack-scenarios.md](docs/attack-scenarios.md) for the attack chain.
+Docs:
+- [docs/project-report.md](docs/project-report.md): full project report (Vietnamese)
+- [docs/scenarios-guide.md](docs/scenarios-guide.md): how to run each attack scenario and what Wazuh should show (Vietnamese)
+- [docs/attack-scenarios.md](docs/attack-scenarios.md): scenario catalogue and MITRE mapping
 
 ## Layout
 
@@ -13,11 +16,13 @@ infra/terraform/   the lab: VPC, EKS, Wazuh, attacker host, IRSA role (destroyed
 app/               demo application (attack target)
 charts/demo-app/   Helm chart: digest-only image, IRSA, no API token, PSS restricted, NetworkPolicy, RBAC
 charts/cluster-policies/  Kyverno 1.20 CEL policies (signatures, registries, PSS, RBAC guardrail)
-platform/          namespaces (native PSA) and Kyverno chart values
+platform/          namespaces (native PSA), Kyverno and Falco chart values
+detection/         Falco rules, Wazuh rules, agent group config, AWS module block
 .github/workflows/ security (scanners + negative tests), build (Trivy, push, SBOM, Cosign), terraform
 scripts/scan.sh    all scanners in pinned containers; CI and local use the same script
 tests/negative/    deliberately insecure fixtures the pipeline must block
 tests/policies/    Kyverno CLI test suite (attack fixtures must be rejected)
+tests/detection/   sample events replayed through wazuh-analysisd (expected rule IDs)
 attack/            attack simulation (receiver runs on the attacker host)
 docs/              scenarios and notes
 ```
@@ -84,6 +89,18 @@ Exceptions are written inline as `#checkov:skip=<ID>:<reason>` so they show up i
 | Developers: read-only, no `exec`, no secrets | chart RBAC | 1, E |
 
 `--mode detect` switches every policy to Audit and opens egress for the detect-only run.
+
+## Runtime detection (phase 5)
+
+Falco (modern eBPF) writes JSON events on each node; the Wazuh agent ships them. EKS audit logs reach
+Wazuh through CloudWatch Logs, CloudTrail through S3. Rules are MITRE-mapped and replayed in a real
+`wazuh-analysisd` in CI (`scripts/scan.sh detection`). `scripts/wazuh-sync.sh` pushes them to the
+manager over SSM, validates, and rolls back on error. `make deploy` runs both automatically.
+
+## Commits
+
+Commit messages follow `[NAMESPACE] Description` (see [.claude/skills/commit/SKILL.md](.claude/skills/commit/SKILL.md)).
+Enable the hooks once per clone: `git config core.hooksPath .githooks`.
 
 ## Cost notes
 
