@@ -19,3 +19,4 @@ attack/vendor/
 *.pem
 # ...but the lab recipient PUBLIC key is committed on purpose
 !attack/keys/lab_recipient_pub.pem
+infra/terraform/lambda/*.zip

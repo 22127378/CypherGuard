@@ -72,6 +72,18 @@ variable "wazuh_agent_version" {
   default     = "4.14.10-1"
 }
 
+variable "enable_guardduty" {
+  description = "Enable GuardDuty + EventBridge + the auto-fix Lambda. Disable if the account already has a detector."
+  type        = bool
+  default     = true
+}
+
+variable "autofix_dry_run" {
+  description = "When true, the auto-fix Lambda logs intended actions without changing IAM."
+  type        = bool
+  default     = false
+}
+
 variable "enable_cloudtrail" {
   description = "Create a lab CloudTrail trail. Disable if the account already has one you can point Wazuh at."
   type        = bool
