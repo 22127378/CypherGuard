@@ -12,7 +12,10 @@ infra/terraform/backend.hcl
 __pycache__/
 *.pyc
 .venv/
+attack/vendor/
 
 # Local
 .env
 *.pem
+# ...but the lab recipient PUBLIC key is committed on purpose
+!attack/keys/lab_recipient_pub.pem
