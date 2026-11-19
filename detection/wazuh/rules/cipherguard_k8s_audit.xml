@@ -1,0 +1,93 @@
+<!--
+  CipherGuard: EKS control plane audit log (CloudWatch Logs -> Wazuh AWS module).
+  Each audit event arrives as raw JSON and is read by the json decoder.
+  IDs 100200-100299.
+-->
+<group name="cipherguard,k8s_audit,">
+
+  <rule id="100200" level="0">
+    <decoded_as>json</decoded_as>
+    <field name="kind">^Event$</field>
+    <field name="apiVersion">^audit.k8s.io/v1$</field>
+    <description>Kubernetes audit: $(verb) $(objectRef.resource) by $(user.username)</description>
+  </rule>
+
+  <!-- Step 0 / B / 3: Kyverno or PSA rejected the request. -->
+  <rule id="100201" level="10">
+    <if_sid>100200</if_sid>
+    <field name="stage">^ResponseComplete$</field>
+    <field name="responseStatus.message" type="pcre2">admission webhook .* denied|violates PodSecurity</field>
+    <description>Admission denied: $(verb) $(objectRef.resource) $(objectRef.namespace)/$(objectRef.name) by $(user.username)</description>
+    <mitre><id>T1610</id></mitre>
+    <group>cipherguard_step0,</group>
+  </rule>
+
+  <!-- Step 1: kubectl exec into a pod. -->
+  <rule id="100202" level="8">
+    <if_sid>100200</if_sid>
+    <field name="objectRef.subresource">^exec$</field>
+    <field name="verb">^create$|^get$</field>
+    <description>kubectl exec into $(objectRef.namespace)/$(objectRef.name) by $(user.username)</description>
+    <mitre><id>T1609</id></mitre>
+    <group>cipherguard_step1,</group>
+  </rule>
+
+  <!-- Step 2/3: workload identity (or anonymous) hitting the API and being refused. -->
+  <rule id="100203" level="8">
+    <if_sid>100200</if_sid>
+    <field name="stage">^ResponseComplete$</field>
+    <field name="responseStatus.code">^403$</field>
+    <field name="user.username" type="pcre2">^(system:anonymous|system:serviceaccount:demo:.+)$</field>
+    <description>Forbidden API request from workload: $(verb) $(objectRef.resource) by $(user.username)</description>
+    <mitre><id>T1613</id></mitre>
+    <group>cipherguard_step2,cipherguard_step3,</group>
+  </rule>
+
+  <!-- Scenario E: secrets actually listed (2xx) by a non-system identity. Refused attempts are 100203. -->
+  <rule id="100204" level="9">
+    <if_sid>100200</if_sid>
+    <field name="stage">^ResponseComplete$</field>
+    <field name="responseStatus.code">^2\d\d$</field>
+    <field name="objectRef.resource">^secrets$</field>
+    <field name="verb">^list$|^watch$</field>
+    <field name="user.username" type="pcre2">^(?!system:(kube-controller-manager|kube-scheduler|apiserver|node:)|system:serviceaccount:(kube-system|kyverno|falco):|eks:)</field>
+    <description>Secrets listed by $(user.username) (namespace: $(objectRef.namespace))</description>
+    <mitre><id>T1552.007</id></mitre>
+    <group>cipherguard_scenario_e,</group>
+  </rule>
+
+  <!-- Step 3 / B: pod requesting host access or privileged mode (logged even if denied). -->
+  <rule id="100205" level="12">
+    <if_sid>100200</if_sid>
+    <field name="objectRef.resource">^pods$</field>
+    <field name="verb">^create$</field>
+    <regex type="pcre2">"privileged":\s*true|"hostPID":\s*true|"hostNetwork":\s*true|"hostPath":</regex>
+    <description>Privileged/host-access pod requested: $(objectRef.namespace)/$(objectRef.name) by $(user.username)</description>
+    <mitre><id>T1611</id></mitre>
+    <group>cipherguard_step3,cipherguard_scenario_b,</group>
+  </rule>
+
+  <!-- Step 3: cluster-admin binding. -->
+  <rule id="100206" level="12">
+    <if_sid>100200</if_sid>
+    <field name="objectRef.resource">^clusterrolebindings$|^rolebindings$</field>
+    <field name="verb">^create$|^update$|^patch$</field>
+    <regex type="pcre2">"name":\s*"cluster-admin"</regex>
+    <description>cluster-admin binding change by $(user.username): $(objectRef.name)</description>
+    <mitre><id>T1098</id></mitre>
+    <group>cipherguard_step3,</group>
+  </rule>
+
+  <!-- Scenario C: persistence through new scheduled or per-node workloads. -->
+  <rule id="100207" level="10">
+    <if_sid>100200</if_sid>
+    <field name="stage">^ResponseComplete$</field>
+    <field name="objectRef.resource">^cronjobs$|^daemonsets$</field>
+    <field name="verb">^create$</field>
+    <field name="user.username" type="pcre2">^(?!system:|eks:)</field>
+    <description>$(objectRef.resource) created by $(user.username): $(objectRef.namespace)/$(objectRef.name)</description>
+    <mitre><id>T1053.007</id></mitre>
+    <group>cipherguard_scenario_c,</group>
+  </rule>
+
+</group>

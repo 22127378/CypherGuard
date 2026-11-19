@@ -6,6 +6,7 @@
 #   scripts/scan.sh sast             Semgrep (Python, Dockerfile, GitHub Actions)
 #   scripts/scan.sh iac              Checkov (Terraform, Dockerfile, Actions, Kubernetes/Helm)
 #   scripts/scan.sh policies         Kyverno CLI tests against the rendered charts
+#   scripts/scan.sh detection        Falco rule validation + Wazuh rules replayed in analysisd
 #   scripts/scan.sh image <ref>      Trivy: fail on fixable HIGH/CRITICAL
 #   scripts/scan.sh sbom <ref>       Syft SPDX JSON to stdout
 #   scripts/scan.sh all              everything except image/sbom
@@ -20,6 +21,8 @@ TRIVY_IMG="aquasec/trivy:0.76.2"
 SYFT_IMG="anchore/syft:v1.57.2"
 HELM_IMG="alpine/helm:4.3.2"
 KYVERNO_IMG="ghcr.io/kyverno/kyverno-cli:v1.20.0"
+FALCO_IMG="falcosecurity/falco:0.45.2"
+WAZUH_IMG="wazuh/wazuh-manager:4.14.10"
 
 ROOT="$(git rev-parse --show-toplevel)"
 NEG="tests/negative"
@@ -85,6 +88,42 @@ policies() {
   docker run --rm -v "$tmp:/tests:ro" "$KYVERNO_IMG" test /tests --detailed-results
 }
 
+detection() {
+  # 1. Falco: custom rules load cleanly next to the default ruleset.
+  docker run --rm -v "$ROOT/detection/falco:/rules:ro" --entrypoint falco "$FALCO_IMG" \
+    -V /etc/falco/falco_rules.yaml -V /rules/cipherguard_rules.yaml 2>&1 | tee /tmp/cg-falco-validate.log
+  grep -q "cipherguard_rules.yaml: Ok$" /tmp/cg-falco-validate.log || { echo "Falco rules invalid or have warnings"; return 1; }
+
+  # 2. Wazuh: rules compile in a real analysisd, and each sample event hits the expected rule.
+  local tmp
+  tmp="$(mktemp -d)"
+  trap 'rm -rf "$tmp"' RETURN
+  mkdir -p "$tmp/rules"
+  for f in "$ROOT"/detection/wazuh/rules/*.xml; do
+    sed 's/__NAT_EIP__/13\\.250\\.1\\.2/g' "$f" >"$tmp/rules/$(basename "$f")"
+  done
+  cp "$ROOT"/tests/detection/* "$tmp/"
+  cp "$ROOT/detection/wazuh/shared/eks-nodes/agent.conf" "$tmp/agent.conf"
+  sed -e 's|__REGION__|ap-southeast-1|g' -e 's|__EKS_LOG_GROUP__|/aws/eks/cipherguard-eks/cluster|g' \
+      -e 's|__CLOUDTRAIL_BUCKET__|cipherguard-cloudtrail-123456789012|g' \
+      "$ROOT/detection/wazuh/ossec-aws.xml" >"$tmp/ossec-aws.xml"
+  chmod -R a+rX "$tmp"
+  docker run --rm -v "$tmp:/tests:ro" --entrypoint bash "$WAZUH_IMG" -c '
+    set -e
+    # Restore the files the image entrypoint normally copies into place.
+    cp -an /var/ossec/data_tmp/permanent/var/ossec/. /var/ossec/
+    cp -an /var/ossec/data_tmp/exclusion/var/ossec/. /var/ossec/
+    cp /tests/rules/*.xml /var/ossec/etc/rules/
+    chown -R wazuh:wazuh /var/ossec/etc
+    /var/ossec/bin/verify-agent-conf -f /tests/agent.conf
+    cat /tests/ossec-aws.xml >> /var/ossec/etc/ossec.conf
+    /var/ossec/bin/wazuh-analysisd -t
+    /var/ossec/bin/wazuh-modulesd -t
+    /var/ossec/bin/wazuh-db
+    /var/ossec/bin/wazuh-analysisd
+    /var/ossec/framework/python/bin/python3 /tests/logtest.py /tests/cases.json'
+}
+
 image() {
   local ref="${1:?image ref required}"
   docker run --rm "${docker_sock[@]}" "$TRIVY_IMG" image \
@@ -141,8 +180,8 @@ negative() {
 
 cmd="${1:-all}"; shift || true
 case "$cmd" in
-  secrets|dockerfile|sast|iac|policies|negative) "$cmd" ;;
+  secrets|dockerfile|sast|iac|policies|detection|negative) "$cmd" ;;
   image|sbom) "$cmd" "$@" ;;
-  all) secrets && dockerfile && sast && iac && policies ;;
+  all) secrets && dockerfile && sast && iac && policies && detection ;;
   *) echo "unknown command: $cmd" >&2; exit 2 ;;
 esac

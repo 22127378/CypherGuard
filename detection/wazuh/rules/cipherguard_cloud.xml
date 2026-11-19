@@ -1,0 +1,37 @@
+<!--
+  CipherGuard: CloudTrail (S3 bucket -> Wazuh AWS module).
+  Children of the built-in AWS chain 80200 -> 80202 -> 80203 -> 80250, listed
+  at each level so they are evaluated whichever branch the event takes.
+  CloudTrail delivery takes minutes, so these back up the EKS audit and Falco
+  alerts rather than meeting the 60 s target on their own.
+  IDs 100300-100399.
+-->
+<group name="cipherguard,aws,">
+
+  <!-- Step 3 / scenario I: the demo pod's IRSA role tries actions it was never granted. -->
+  <rule id="100300" level="10">
+    <if_sid>80200,80202,80203,80250</if_sid>
+    <field name="aws.source">^cloudtrail$</field>
+    <field name="aws.errorCode" type="pcre2">AccessDenied|UnauthorizedOperation</field>
+    <field name="aws.userIdentity.arn" type="pcre2">:assumed-role/cipherguard-demo-app/</field>
+    <description>Demo pod IAM role denied: $(aws.eventSource) $(aws.eventName)</description>
+    <mitre><id>T1078.004</id></mitre>
+    <group>cipherguard_step3,cipherguard_scenario_i,</group>
+  </rule>
+
+  <!--
+    Scenario D: node instance role credentials used from an IP that is not the
+    lab NAT Gateway (all legitimate node traffic leaves through it).
+    __NAT_EIP__ is filled in by scripts/wazuh-sync.sh.
+  -->
+  <rule id="100301" level="12">
+    <if_sid>80200,80202,80203,80250</if_sid>
+    <field name="aws.source">^cloudtrail$</field>
+    <field name="aws.userIdentity.arn" type="pcre2">:assumed-role/cipherguard-node[^/]*/i-</field>
+    <field name="aws.sourceIPAddress" type="pcre2">^(?!__NAT_EIP__$)\d+\.\d+\.\d+\.\d+$</field>
+    <description>Node role credentials used from $(aws.sourceIPAddress): $(aws.eventName)</description>
+    <mitre><id>T1552.005</id></mitre>
+    <group>cipherguard_scenario_d,</group>
+  </rule>
+
+</group>

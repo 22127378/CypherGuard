@@ -1,0 +1,150 @@
+# CipherGuard custom Falco rules. Loaded next to the default falco-rules set,
+# which already covers "Terminal shell in container" (step 1) and
+# "Contact K8S API Server From Container" (step 2).
+#
+# Every rule name below is matched by a Wazuh rule in
+# detection/wazuh/rules/cipherguard_falco.xml, where the MITRE mapping lives.
+
+- list: cg_app_namespaces
+  items: [demo]
+
+- macro: cg_app_container
+  condition: (container and k8s.ns.name in (cg_app_namespaces))
+
+# The application process is PID 1 inside its container; anything else in the
+# app pod (a shell, a dropped script) is the attacker.
+- macro: cg_not_app_process
+  condition: (proc.vpid != 1)
+
+# ---------- Step 2: credential discovery ----------
+
+- rule: CipherGuard Read Projected Token
+  desc: >
+    A process other than the application reads a Kubernetes ServiceAccount or
+    IRSA web identity token inside an app pod.
+  condition: >
+    open_read and cg_app_container and cg_not_app_process
+    and (fd.name startswith /var/run/secrets/kubernetes.io/serviceaccount/
+         or fd.name startswith /var/run/secrets/eks.amazonaws.com/serviceaccount/)
+  output: >
+    Token read in app pod (file=%fd.name proc=%proc.name cmdline=%proc.cmdline
+    pod=%k8s.pod.name ns=%k8s.ns.name container_id=%container.id image=%container.image.repository)
+  priority: WARNING
+  tags: [cipherguard, container, mitre_credential_access, T1552.007]
+
+# ---------- Scenario D: IMDS credential theft ----------
+
+- rule: CipherGuard Contact Instance Metadata
+  desc: A container connects to the EC2 instance metadata service (node role credentials).
+  condition: >
+    evt.type = connect and container
+    and fd.sip = "169.254.169.254"
+    and (evt.rawres >= 0 or evt.res = EINPROGRESS)
+  output: >
+    Container contacted IMDS (proc=%proc.name cmdline=%proc.cmdline connection=%fd.name
+    pod=%k8s.pod.name ns=%k8s.ns.name container_id=%container.id image=%container.image.repository)
+  priority: CRITICAL
+  tags: [cipherguard, container, network, mitre_credential_access, T1552.005]
+
+# ---------- Scenario B: container escape ----------
+
+- rule: CipherGuard Escape Tooling In Container
+  desc: Namespace or mount manipulation tools run inside a container.
+  condition: >
+    spawned_process and container
+    and proc.name in (nsenter, unshare, chroot, mount, umount, capsh, debugfs)
+  output: >
+    Escape tooling in container (proc=%proc.name cmdline=%proc.cmdline user=%user.name
+    pod=%k8s.pod.name ns=%k8s.ns.name container_id=%container.id image=%container.image.repository)
+  priority: CRITICAL
+  tags: [cipherguard, container, mitre_privilege_escalation, T1611]
+
+- rule: CipherGuard Container Runtime Socket Access
+  desc: A container connects to the Docker or containerd socket.
+  condition: >
+    evt.type = connect and container and fd.typechar = u
+    and fd.name in (/var/run/docker.sock, /run/docker.sock,
+                    /run/containerd/containerd.sock, /var/run/containerd/containerd.sock)
+  output: >
+    Runtime socket access from container (socket=%fd.name proc=%proc.name cmdline=%proc.cmdline
+    pod=%k8s.pod.name ns=%k8s.ns.name container_id=%container.id image=%container.image.repository)
+  priority: CRITICAL
+  tags: [cipherguard, container, mitre_privilege_escalation, T1611]
+
+# ---------- Scenario G: defense evasion ----------
+
+- rule: CipherGuard Exec From Writable Temp
+  desc: A binary or script dropped into a temp directory is executed in a container.
+  condition: >
+    spawned_process and container
+    and (proc.exepath startswith /tmp/ or proc.exepath startswith /var/tmp/
+         or proc.exepath startswith /dev/shm/)
+  output: >
+    Executable run from temp dir (exe=%proc.exepath cmdline=%proc.cmdline parent=%proc.pname
+    pod=%k8s.pod.name ns=%k8s.ns.name container_id=%container.id image=%container.image.repository)
+  priority: ERROR
+  tags: [cipherguard, container, mitre_command_and_control, T1105]
+
+- rule: CipherGuard Log Or History Tampering
+  desc: Log files or shell history are deleted, shredded or truncated in a container.
+  condition: >
+    spawned_process and container
+    and (proc.name in (shred, wipe)
+         or (proc.name in (rm, unlink, truncate)
+             and (proc.args contains /var/log or proc.args contains _history)))
+  output: >
+    Log or history tampering (cmdline=%proc.cmdline user=%user.name
+    pod=%k8s.pod.name ns=%k8s.ns.name container_id=%container.id image=%container.image.repository)
+  priority: ERROR
+  tags: [cipherguard, container, mitre_defense_evasion, T1070]
+
+- rule: CipherGuard Kill Security Agent
+  desc: An attempt to stop Falco or the Wazuh agent, on the node or from a container.
+  condition: >
+    spawned_process
+    and ((proc.name in (kill, pkill, killall) and (proc.args contains falco or proc.args contains wazuh))
+         or (proc.name = systemctl and proc.args contains wazuh and
+             (proc.args contains stop or proc.args contains disable or proc.args contains mask)))
+  output: >
+    Security agent tampering (cmdline=%proc.cmdline user=%user.name host=%evt.hostname
+    container_id=%container.id)
+  priority: CRITICAL
+  tags: [cipherguard, host, mitre_defense_evasion, T1562.001]
+
+# ---------- Scenario F: discovery / lateral movement ----------
+
+- rule: CipherGuard Network Recon Tool
+  desc: Port scanners or raw socket tools run in a container.
+  condition: >
+    spawned_process and container
+    and proc.name in (nmap, masscan, zmap, nc, ncat, netcat, socat, arp-scan)
+  output: >
+    Network recon tool in container (cmdline=%proc.cmdline user=%user.name
+    pod=%k8s.pod.name ns=%k8s.ns.name container_id=%container.id image=%container.image.repository)
+  priority: WARNING
+  tags: [cipherguard, container, network, mitre_discovery, T1046]
+
+# ---------- Step 4: exfiltration ----------
+
+# Synthetic test data is mounted at /data in the demo pod (phase 6).
+- rule: CipherGuard Sensitive Data Read
+  desc: A process other than the application reads the mounted test data.
+  condition: >
+    open_read and cg_app_container and cg_not_app_process
+    and fd.name startswith /data/
+  output: >
+    Sensitive data read in app pod (file=%fd.name proc=%proc.name cmdline=%proc.cmdline
+    pod=%k8s.pod.name ns=%k8s.ns.name container_id=%container.id image=%container.image.repository)
+  priority: WARNING
+  tags: [cipherguard, container, mitre_collection, T1005]
+
+# The app only needs DNS and HTTPS to AWS APIs; any other outbound port is suspicious.
+- rule: CipherGuard Unexpected Outbound From App Pod
+  desc: An app pod opens an outbound connection on a port other than 53 or 443.
+  condition: >
+    outbound and cg_app_container and not fd.sport in (53, 443)
+  output: >
+    Unexpected outbound connection (connection=%fd.name proc=%proc.name cmdline=%proc.cmdline
+    pod=%k8s.pod.name ns=%k8s.ns.name container_id=%container.id image=%container.image.repository)
+  priority: ERROR
+  tags: [cipherguard, container, network, mitre_exfiltration, T1041]

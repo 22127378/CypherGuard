@@ -1,0 +1,141 @@
+<!--
+  CipherGuard: Falco runtime events (JSON lines from /var/log/falco/events.json,
+  shipped by the Wazuh agent on each EKS worker node).
+  IDs 100100-100199.
+-->
+<group name="cipherguard,falco,">
+
+  <rule id="100100" level="3">
+    <decoded_as>json</decoded_as>
+    <field name="source">^syscall$</field>
+    <field name="rule">\.+</field>
+    <description>Falco: $(rule)</description>
+  </rule>
+
+  <!-- Any Falco event at Warning or above that has no specific rule below. -->
+  <rule id="100101" level="6">
+    <if_sid>100100</if_sid>
+    <field name="priority" type="pcre2">^(Warning|Error|Critical|Alert|Emergency)$</field>
+    <description>Falco $(priority): $(rule)</description>
+  </rule>
+
+  <!-- Step 1: foothold -->
+  <rule id="100110" level="10">
+    <if_sid>100100</if_sid>
+    <field name="rule" type="pcre2">^Terminal shell in container$</field>
+    <description>Shell opened in container $(output_fields.k8s.pod.name) ($(output_fields.k8s.ns.name))</description>
+    <mitre><id>T1609</id></mitre>
+    <group>cipherguard_step1,</group>
+  </rule>
+
+  <!-- Step 2: discovery -->
+  <rule id="100111" level="8">
+    <if_sid>100100</if_sid>
+    <field name="rule" type="pcre2">^Contact K8S API Server From Container$</field>
+    <description>Container contacted the Kubernetes API server: $(output_fields.k8s.pod.name)</description>
+    <mitre><id>T1613</id></mitre>
+    <group>cipherguard_step2,</group>
+  </rule>
+
+  <rule id="100112" level="10">
+    <if_sid>100100</if_sid>
+    <field name="rule" type="pcre2">^CipherGuard Read Projected Token$</field>
+    <description>ServiceAccount/IRSA token read by $(output_fields.proc.name) in $(output_fields.k8s.pod.name)</description>
+    <mitre><id>T1552.007</id></mitre>
+    <group>cipherguard_step2,</group>
+  </rule>
+
+  <!-- Scenario D -->
+  <rule id="100113" level="12">
+    <if_sid>100100</if_sid>
+    <field name="rule" type="pcre2">^CipherGuard Contact Instance Metadata$</field>
+    <description>Container contacted IMDS (node credentials): $(output_fields.k8s.pod.name)</description>
+    <mitre><id>T1552.005</id></mitre>
+    <group>cipherguard_scenario_d,</group>
+  </rule>
+
+  <!-- Scenario B -->
+  <rule id="100114" level="12">
+    <if_sid>100100</if_sid>
+    <field name="rule" type="pcre2">^CipherGuard (Escape Tooling In Container|Container Runtime Socket Access)$</field>
+    <description>Container escape attempt: $(rule) in $(output_fields.k8s.pod.name)</description>
+    <mitre><id>T1611</id></mitre>
+    <group>cipherguard_scenario_b,</group>
+  </rule>
+
+  <!-- Scenario G -->
+  <rule id="100115" level="10">
+    <if_sid>100100</if_sid>
+    <field name="rule" type="pcre2">^CipherGuard Exec From Writable Temp$</field>
+    <description>Dropped binary executed from temp dir: $(output_fields.proc.exepath)</description>
+    <mitre><id>T1105</id></mitre>
+    <group>cipherguard_scenario_g,</group>
+  </rule>
+
+  <rule id="100116" level="10">
+    <if_sid>100100</if_sid>
+    <field name="rule" type="pcre2">^CipherGuard Log Or History Tampering$</field>
+    <description>Log or shell history tampering: $(output_fields.proc.cmdline)</description>
+    <mitre><id>T1070</id></mitre>
+    <group>cipherguard_scenario_g,</group>
+  </rule>
+
+  <rule id="100117" level="13">
+    <if_sid>100100</if_sid>
+    <field name="rule" type="pcre2">^CipherGuard Kill Security Agent$</field>
+    <description>Attempt to stop a security agent: $(output_fields.proc.cmdline)</description>
+    <mitre><id>T1562.001</id></mitre>
+    <group>cipherguard_scenario_g,</group>
+  </rule>
+
+  <!-- Scenario F -->
+  <rule id="100118" level="8">
+    <if_sid>100100</if_sid>
+    <field name="rule" type="pcre2">^CipherGuard Network Recon Tool$</field>
+    <description>Network recon tool in container: $(output_fields.proc.cmdline)</description>
+    <mitre><id>T1046</id></mitre>
+    <group>cipherguard_scenario_f,</group>
+  </rule>
+
+  <!-- Step 4: exfiltration -->
+  <rule id="100119" level="8">
+    <if_sid>100100</if_sid>
+    <field name="rule" type="pcre2">^CipherGuard Sensitive Data Read$</field>
+    <description>Test data read by $(output_fields.proc.name) in $(output_fields.k8s.pod.name)</description>
+    <mitre><id>T1005</id></mitre>
+    <group>cipherguard_step4,</group>
+  </rule>
+
+  <rule id="100120" level="10">
+    <if_sid>100100</if_sid>
+    <field name="rule" type="pcre2">^CipherGuard Unexpected Outbound From App Pod$</field>
+    <description>Unexpected outbound connection from app pod: $(output_fields.fd.name)</description>
+    <mitre><id>T1041</id></mitre>
+    <group>cipherguard_step4,</group>
+  </rule>
+
+  <!--
+    Correlation: data read then an unexpected outbound connection from the same
+    container within 2 minutes. Content is encrypted (AES-256-GCM + RSA), so this
+    is behaviour-only detection.
+  -->
+  <rule id="100130" level="14" timeframe="120">
+    <if_sid>100120</if_sid>
+    <if_matched_sid>100119</if_matched_sid>
+    <same_field>output_fields.container.id</same_field>
+    <description>Likely exfiltration: test data read, then outbound connection from the same container</description>
+    <mitre><id>T1041</id></mitre>
+    <group>cipherguard_step4,cipherguard_correlation,</group>
+  </rule>
+
+</group>
+
+<!-- Agent disconnects from EKS nodes may mean the agent was stopped (scenario G). -->
+<group name="cipherguard,wazuh_agent,">
+  <rule id="100140" level="10">
+    <if_sid>504</if_sid>
+    <description>Wazuh agent disconnected (possible security tooling tampering)</description>
+    <mitre><id>T1562.001</id></mitre>
+    <group>cipherguard_scenario_g,</group>
+  </rule>
+</group>

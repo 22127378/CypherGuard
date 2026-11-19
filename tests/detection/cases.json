@@ -1,0 +1,164 @@
+{
+  "_comment": "Run in order through wazuh-logtest with one session, so correlation rules see earlier events. expect=null means the event must NOT raise an alert. NAT EIP in tests is 13.250.1.2.",
+  "cases": [
+    {
+      "name": "step1 shell in demo pod (Falco default rule)",
+      "location": "/var/log/falco/events.json",
+      "expect": "100110", "mitre": "T1609",
+      "event": {"hostname": "ip-10-20-1-23", "output": "Notice A shell was spawned in a container", "priority": "Notice", "rule": "Terminal shell in container", "source": "syscall", "tags": ["T1059", "container", "mitre_execution", "shell"], "time": "2026-11-19T04:30:00.000000000Z", "output_fields": {"container.id": "3f2a9c1b7d10", "container.image.repository": "123456789012.dkr.ecr.ap-southeast-1.amazonaws.com/cipherguard/demo-app", "k8s.ns.name": "demo", "k8s.pod.name": "demo-app-7c9d8-abcde", "proc.name": "sh", "proc.cmdline": "sh", "user.name": "app"}}
+    },
+    {
+      "name": "step2 IRSA token read",
+      "location": "/var/log/falco/events.json",
+      "expect": "100112", "mitre": "T1552.007",
+      "event": {"hostname": "ip-10-20-1-23", "output": "Warning Token read in app pod", "priority": "Warning", "rule": "CipherGuard Read Projected Token", "source": "syscall", "tags": ["T1552.007", "cipherguard"], "time": "2026-11-19T04:30:05.000000000Z", "output_fields": {"container.id": "3f2a9c1b7d10", "fd.name": "/var/run/secrets/eks.amazonaws.com/serviceaccount/token", "k8s.ns.name": "demo", "k8s.pod.name": "demo-app-7c9d8-abcde", "proc.name": "cat", "proc.cmdline": "cat /var/run/secrets/eks.amazonaws.com/serviceaccount/token"}}
+    },
+    {
+      "name": "step2 API server contact (Falco default rule)",
+      "location": "/var/log/falco/events.json",
+      "expect": "100111", "mitre": "T1613",
+      "event": {"hostname": "ip-10-20-1-23", "output": "Notice Unexpected connection to K8s API Server", "priority": "Notice", "rule": "Contact K8S API Server From Container", "source": "syscall", "tags": ["T1565", "k8s"], "time": "2026-11-19T04:30:06.000000000Z", "output_fields": {"container.id": "3f2a9c1b7d10", "k8s.ns.name": "demo", "k8s.pod.name": "demo-app-7c9d8-abcde", "proc.name": "curl"}}
+    },
+    {
+      "name": "scenario D IMDS",
+      "location": "/var/log/falco/events.json",
+      "expect": "100113", "mitre": "T1552.005",
+      "event": {"hostname": "ip-10-20-1-23", "output": "Critical Container contacted IMDS", "priority": "Critical", "rule": "CipherGuard Contact Instance Metadata", "source": "syscall", "tags": ["T1552.005", "cipherguard"], "time": "2026-11-19T04:30:10.000000000Z", "output_fields": {"container.id": "3f2a9c1b7d10", "fd.name": "10.20.1.50:41234->169.254.169.254:80", "k8s.ns.name": "demo", "k8s.pod.name": "demo-app-7c9d8-abcde", "proc.name": "curl", "proc.cmdline": "curl http://169.254.169.254/latest/meta-data/"}}
+    },
+    {
+      "name": "scenario B nsenter",
+      "location": "/var/log/falco/events.json",
+      "expect": "100114", "mitre": "T1611",
+      "event": {"hostname": "ip-10-20-1-23", "output": "Critical Escape tooling in container", "priority": "Critical", "rule": "CipherGuard Escape Tooling In Container", "source": "syscall", "tags": ["T1611", "cipherguard"], "time": "2026-11-19T04:30:12.000000000Z", "output_fields": {"container.id": "3f2a9c1b7d10", "k8s.ns.name": "demo", "k8s.pod.name": "demo-app-7c9d8-abcde", "proc.name": "nsenter", "proc.cmdline": "nsenter -t 1 -m -u -i -n sh"}}
+    },
+    {
+      "name": "scenario G exec from /tmp",
+      "location": "/var/log/falco/events.json",
+      "expect": "100115", "mitre": "T1105",
+      "event": {"hostname": "ip-10-20-1-23", "output": "Error Executable run from temp dir", "priority": "Error", "rule": "CipherGuard Exec From Writable Temp", "source": "syscall", "tags": ["T1105", "cipherguard"], "time": "2026-11-19T04:30:14.000000000Z", "output_fields": {"container.id": "3f2a9c1b7d10", "k8s.ns.name": "demo", "k8s.pod.name": "demo-app-7c9d8-abcde", "proc.exepath": "/tmp/payload", "proc.cmdline": "payload"}}
+    },
+    {
+      "name": "scenario G log tampering",
+      "location": "/var/log/falco/events.json",
+      "expect": "100116", "mitre": "T1070",
+      "event": {"hostname": "ip-10-20-1-23", "output": "Error Log or history tampering", "priority": "Error", "rule": "CipherGuard Log Or History Tampering", "source": "syscall", "tags": ["T1070", "cipherguard"], "time": "2026-11-19T04:30:15.000000000Z", "output_fields": {"container.id": "3f2a9c1b7d10", "k8s.ns.name": "demo", "k8s.pod.name": "demo-app-7c9d8-abcde", "proc.cmdline": "rm -f /root/.ash_history"}}
+    },
+    {
+      "name": "scenario G stop wazuh agent",
+      "location": "/var/log/falco/events.json",
+      "expect": "100117", "mitre": "T1562.001",
+      "event": {"hostname": "ip-10-20-1-23", "output": "Critical Security agent tampering", "priority": "Critical", "rule": "CipherGuard Kill Security Agent", "source": "syscall", "tags": ["T1562.001", "cipherguard"], "time": "2026-11-19T04:30:16.000000000Z", "output_fields": {"container.id": "host", "proc.cmdline": "systemctl stop wazuh-agent"}}
+    },
+    {
+      "name": "scenario F nmap",
+      "location": "/var/log/falco/events.json",
+      "expect": "100118", "mitre": "T1046",
+      "event": {"hostname": "ip-10-20-1-23", "output": "Warning Network recon tool in container", "priority": "Warning", "rule": "CipherGuard Network Recon Tool", "source": "syscall", "tags": ["T1046", "cipherguard"], "time": "2026-11-19T04:30:17.000000000Z", "output_fields": {"container.id": "3f2a9c1b7d10", "k8s.ns.name": "demo", "k8s.pod.name": "demo-app-7c9d8-abcde", "proc.cmdline": "nmap -sT 10.20.0.0/24"}}
+    },
+    {
+      "name": "unrelated Falco warning falls back to generic rule",
+      "location": "/var/log/falco/events.json",
+      "expect": "100101",
+      "event": {"hostname": "ip-10-20-1-23", "output": "Warning Sensitive file opened for reading", "priority": "Warning", "rule": "Read sensitive file untrusted", "source": "syscall", "tags": ["T1555", "filesystem"], "time": "2026-11-19T04:30:18.000000000Z", "output_fields": {"container.id": "host", "fd.name": "/etc/shadow", "proc.name": "cat"}}
+    },
+    {
+      "name": "step4 test data read",
+      "location": "/var/log/falco/events.json",
+      "expect": "100119", "mitre": "T1005",
+      "event": {"hostname": "ip-10-20-1-23", "output": "Warning Sensitive data read in app pod", "priority": "Warning", "rule": "CipherGuard Sensitive Data Read", "source": "syscall", "tags": ["T1005", "cipherguard"], "time": "2026-11-19T04:31:00.000000000Z", "output_fields": {"container.id": "3f2a9c1b7d10", "fd.name": "/data/customers.csv", "k8s.ns.name": "demo", "k8s.pod.name": "demo-app-7c9d8-abcde", "proc.name": "python3", "proc.cmdline": "python3 /tmp/exfil.py"}}
+    },
+    {
+      "name": "step4 outbound from a DIFFERENT container is not correlated",
+      "location": "/var/log/falco/events.json",
+      "expect": "100120", "mitre": "T1041",
+      "event": {"hostname": "ip-10-20-1-24", "output": "Error Unexpected outbound connection", "priority": "Error", "rule": "CipherGuard Unexpected Outbound From App Pod", "source": "syscall", "tags": ["T1041", "cipherguard"], "time": "2026-11-19T04:31:01.000000000Z", "output_fields": {"container.id": "99aa00bb11cc", "fd.name": "10.20.2.9:51122->10.20.48.10:8080", "k8s.ns.name": "demo", "k8s.pod.name": "demo-app-7c9d8-zzzzz", "proc.name": "python3"}}
+    },
+    {
+      "name": "step4 read then outbound from the SAME container -> correlation",
+      "location": "/var/log/falco/events.json",
+      "expect": "100130", "mitre": "T1041",
+      "event": {"hostname": "ip-10-20-1-23", "output": "Error Unexpected outbound connection", "priority": "Error", "rule": "CipherGuard Unexpected Outbound From App Pod", "source": "syscall", "tags": ["T1041", "cipherguard"], "time": "2026-11-19T04:31:02.000000000Z", "output_fields": {"container.id": "3f2a9c1b7d10", "fd.name": "10.20.1.50:51122->10.20.48.10:8080", "k8s.ns.name": "demo", "k8s.pod.name": "demo-app-7c9d8-abcde", "proc.name": "python3"}}
+    },
+
+    {
+      "name": "audit: Kyverno denied unsigned pod",
+      "location": "Wazuh-AWS",
+      "expect": "100201", "mitre": "T1610",
+      "event": {"kind": "Event", "apiVersion": "audit.k8s.io/v1", "level": "Metadata", "auditID": "a1", "stage": "ResponseComplete", "requestURI": "/api/v1/namespaces/demo/pods", "verb": "create", "user": {"username": "kubernetes-admin", "groups": ["system:authenticated"]}, "sourceIPs": ["203.0.113.10"], "objectRef": {"resource": "pods", "namespace": "demo", "name": "evil", "apiVersion": "v1"}, "responseStatus": {"metadata": {}, "status": "Failure", "message": "admission webhook \"ivpol.validate.kyverno.svc-fail\" denied the request: verify-image-signatures: image is not signed", "code": 400}}
+    },
+    {
+      "name": "audit: kubectl exec",
+      "location": "Wazuh-AWS",
+      "expect": "100202", "mitre": "T1609",
+      "event": {"kind": "Event", "apiVersion": "audit.k8s.io/v1", "level": "Request", "auditID": "a2", "stage": "ResponseStarted", "requestURI": "/api/v1/namespaces/demo/pods/demo-app-7c9d8-abcde/exec?command=sh&stdin=true&tty=true", "verb": "create", "user": {"username": "kubernetes-admin"}, "objectRef": {"resource": "pods", "subresource": "exec", "namespace": "demo", "name": "demo-app-7c9d8-abcde", "apiVersion": "v1"}, "responseStatus": {"metadata": {}, "code": 101}}
+    },
+    {
+      "name": "audit: anonymous forbidden",
+      "location": "Wazuh-AWS",
+      "expect": "100203", "mitre": "T1613",
+      "event": {"kind": "Event", "apiVersion": "audit.k8s.io/v1", "level": "Metadata", "auditID": "a3", "stage": "ResponseComplete", "requestURI": "/api/v1/namespaces/kube-system/secrets", "verb": "list", "user": {"username": "system:anonymous", "groups": ["system:unauthenticated"]}, "objectRef": {"resource": "secrets", "namespace": "kube-system", "apiVersion": "v1"}, "responseStatus": {"metadata": {}, "status": "Failure", "reason": "Forbidden", "code": 403}}
+    },
+    {
+      "name": "audit: secrets listed cluster-wide by a user",
+      "location": "Wazuh-AWS",
+      "expect": "100204", "mitre": "T1552.007",
+      "event": {"kind": "Event", "apiVersion": "audit.k8s.io/v1", "level": "Metadata", "auditID": "a4", "stage": "ResponseComplete", "requestURI": "/api/v1/secrets", "verb": "list", "user": {"username": "arn:aws:sts::123456789012:assumed-role/dev/session"}, "objectRef": {"resource": "secrets", "apiVersion": "v1"}, "responseStatus": {"metadata": {}, "code": 200}}
+    },
+    {
+      "name": "audit: Kyverno reading secrets is normal",
+      "location": "Wazuh-AWS",
+      "expect": null,
+      "event": {"kind": "Event", "apiVersion": "audit.k8s.io/v1", "level": "Metadata", "auditID": "a5", "stage": "ResponseComplete", "requestURI": "/api/v1/namespaces/kyverno/secrets", "verb": "list", "user": {"username": "system:serviceaccount:kyverno:kyverno-admission-controller"}, "objectRef": {"resource": "secrets", "namespace": "kyverno", "apiVersion": "v1"}, "responseStatus": {"metadata": {}, "code": 200}}
+    },
+    {
+      "name": "audit: privileged pod requested",
+      "location": "Wazuh-AWS",
+      "expect": "100205", "mitre": "T1611",
+      "event": {"kind": "Event", "apiVersion": "audit.k8s.io/v1", "level": "Request", "auditID": "a6", "stage": "ResponseComplete", "requestURI": "/api/v1/namespaces/default/pods", "verb": "create", "user": {"username": "kubernetes-admin"}, "objectRef": {"resource": "pods", "namespace": "default", "name": "priv", "apiVersion": "v1"}, "requestObject": {"kind": "Pod", "spec": {"containers": [{"name": "c", "image": "busybox", "securityContext": {"privileged": true}}]}}, "responseStatus": {"metadata": {}, "code": 201}}
+    },
+    {
+      "name": "audit: cluster-admin binding",
+      "location": "Wazuh-AWS",
+      "expect": "100206", "mitre": "T1098",
+      "event": {"kind": "Event", "apiVersion": "audit.k8s.io/v1", "level": "RequestResponse", "auditID": "a7", "stage": "ResponseComplete", "requestURI": "/apis/rbac.authorization.k8s.io/v1/clusterrolebindings", "verb": "create", "user": {"username": "kubernetes-admin"}, "objectRef": {"resource": "clusterrolebindings", "name": "pwn", "apiGroup": "rbac.authorization.k8s.io", "apiVersion": "v1"}, "requestObject": {"kind": "ClusterRoleBinding", "roleRef": {"apiGroup": "rbac.authorization.k8s.io", "kind": "ClusterRole", "name": "cluster-admin"}, "subjects": [{"kind": "ServiceAccount", "name": "demo-app", "namespace": "demo"}]}, "responseStatus": {"metadata": {}, "code": 201}}
+    },
+    {
+      "name": "audit: CronJob persistence",
+      "location": "Wazuh-AWS",
+      "expect": "100207", "mitre": "T1053.007",
+      "event": {"kind": "Event", "apiVersion": "audit.k8s.io/v1", "level": "Metadata", "auditID": "a8", "stage": "ResponseComplete", "requestURI": "/apis/batch/v1/namespaces/demo/cronjobs", "verb": "create", "user": {"username": "arn:aws:sts::123456789012:assumed-role/dev/session"}, "objectRef": {"resource": "cronjobs", "namespace": "demo", "name": "backdoor", "apiGroup": "batch", "apiVersion": "v1"}, "responseStatus": {"metadata": {}, "code": 201}}
+    },
+    {
+      "name": "audit: routine controller GET is silent",
+      "location": "Wazuh-AWS",
+      "expect": null,
+      "event": {"kind": "Event", "apiVersion": "audit.k8s.io/v1", "level": "Metadata", "auditID": "a9", "stage": "ResponseComplete", "requestURI": "/api/v1/namespaces/demo/pods", "verb": "list", "user": {"username": "system:kube-controller-manager"}, "objectRef": {"resource": "pods", "namespace": "demo", "apiVersion": "v1"}, "responseStatus": {"metadata": {}, "code": 200}}
+    },
+
+    {
+      "name": "cloudtrail: demo pod role denied",
+      "location": "Wazuh-AWS",
+      "expect": "100300", "mitre": "T1078.004",
+      "event": {"integration": "aws", "aws": {"log_info": {"aws_account_alias": "", "log_file": "AWSLogs/123456789012/CloudTrail/ap-southeast-1/2026/11/19/x.json.gz", "s3bucket": "cipherguard-cloudtrail-123456789012"}, "eventVersion": "1.10", "userIdentity": {"type": "AssumedRole", "principalId": "AROAEXAMPLE:botocore-session-1", "arn": "arn:aws:sts::123456789012:assumed-role/cipherguard-demo-app/botocore-session-1", "accountId": "123456789012"}, "eventTime": "2026-11-19T04:32:00Z", "eventSource": "s3.amazonaws.com", "eventName": "ListBuckets", "awsRegion": "ap-southeast-1", "sourceIPAddress": "13.250.1.2", "errorCode": "AccessDenied", "errorMessage": "Access Denied", "eventType": "AwsApiCall", "source": "cloudtrail"}}
+    },
+    {
+      "name": "cloudtrail: node role used from attacker IP",
+      "location": "Wazuh-AWS",
+      "expect": "100301", "mitre": "T1552.005",
+      "event": {"integration": "aws", "aws": {"log_info": {"aws_account_alias": "", "log_file": "x.json.gz", "s3bucket": "cipherguard-cloudtrail-123456789012"}, "eventVersion": "1.10", "userIdentity": {"type": "AssumedRole", "arn": "arn:aws:sts::123456789012:assumed-role/cipherguard-node-20261119/i-0abc123def4567890", "accountId": "123456789012"}, "eventTime": "2026-11-19T04:33:00Z", "eventSource": "sts.amazonaws.com", "eventName": "GetCallerIdentity", "awsRegion": "ap-southeast-1", "sourceIPAddress": "198.51.100.77", "eventType": "AwsApiCall", "source": "cloudtrail"}}
+    },
+    {
+      "name": "cloudtrail: node role from the NAT EIP is normal",
+      "location": "Wazuh-AWS",
+      "expect_not": "100301",
+      "event": {"integration": "aws", "aws": {"log_info": {"aws_account_alias": "", "log_file": "x.json.gz", "s3bucket": "cipherguard-cloudtrail-123456789012"}, "eventVersion": "1.10", "userIdentity": {"type": "AssumedRole", "arn": "arn:aws:sts::123456789012:assumed-role/cipherguard-node-20261119/i-0abc123def4567890", "accountId": "123456789012"}, "eventTime": "2026-11-19T04:33:05Z", "eventSource": "ecr.amazonaws.com", "eventName": "GetAuthorizationToken", "awsRegion": "ap-southeast-1", "sourceIPAddress": "13.250.1.2", "eventType": "AwsApiCall", "source": "cloudtrail"}}
+    },
+
+    {
+      "name": "agent disconnected",
+      "location": "wazuh-monitord",
+      "expect": "100140", "mitre": "T1562.001",
+      "event": "ossec: Agent disconnected: '003-ip-10-20-1-23'."
+    }
+  ]
+}
