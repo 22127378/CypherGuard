@@ -158,6 +158,17 @@ PY
 
 Rule CloudTrail **100301** báo khi credential của node role bị dùng từ một IP không phải NAT. Trong lab, credential không lấy được, nên rule này là lớp phòng thủ dự phòng.
 
+Nếu GuardDuty thực sự sinh finding `InstanceCredentialExfiltration` (khi credential node bị dùng ngoài AWS), finding đó đi hai hướng: tới Wazuh (rule **100312**, level 12) và tới Lambda auto-fix. Lambda gắn inline policy Deny-all lên role `cipherguard-node-*`, vô hiệu hóa session bị đánh cắp ngay lập tức. Kiểm tra:
+
+```bash
+# Finding mô phỏng (nếu không chờ được GuardDuty thật) hoặc sau sự kiện thật:
+aws logs tail /aws/lambda/cipherguard-autofix --since 10m
+# Role bị cô lập sẽ có inline policy CipherGuardQuarantine:
+aws iam list-role-policies --role-name <cipherguard-node-...>
+```
+
+Đặt `autofix_dry_run = true` trong `terraform.tfvars` nếu chỉ muốn Lambda ghi log mà không sửa IAM.
+
 ### Bước 3: Escalation (T1611, T1098, T1078.004)
 
 **3a. Dùng quyền AWS của pod** (từ trong pod, boto3 có sẵn trong image):
@@ -299,6 +310,9 @@ sudo tail /var/ossec/logs/active-responses.log
 | 100207 | 10 | T1053.007 | EKS audit | Tạo CronJob hoặc DaemonSet |
 | 100300 | 10 | T1078.004 | CloudTrail | IAM role của pod bị từ chối |
 | 100301 | 12 | T1552.005 | CloudTrail | Credential của node role dùng từ IP lạ |
+| 100310 | 3 | — | GuardDuty | Finding (thông tin) |
+| 100311 | 10 | T1078 | GuardDuty | Finding mức cao (severity ≥ 7) |
+| 100312 | 12 | T1552.005 | GuardDuty | Node credential bị exfiltrate; Lambda auto-fix cô lập role |
 
 ## 5. Độ trễ cần biết
 

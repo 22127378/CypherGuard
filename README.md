@@ -17,7 +17,7 @@ app/               demo application (attack target)
 charts/demo-app/   Helm chart: digest-only image, IRSA, no API token, PSS restricted, NetworkPolicy, RBAC
 charts/cluster-policies/  Kyverno 1.20 CEL policies (signatures, registries, PSS, RBAC guardrail)
 platform/          namespaces (native PSA), Kyverno and Falco chart values
-detection/         Falco rules, Wazuh rules, agent config, AWS module, Active Response
+detection/         Falco rules, Wazuh rules (incl. GuardDuty), agent config, AWS module, Active Response
 .github/workflows/ security (scanners + negative tests), build (Trivy, push, SBOM, Cosign), terraform
 scripts/scan.sh    all scanners in pinned containers; CI and local use the same script
 tests/negative/    deliberately insecure fixtures the pipeline must block
@@ -91,6 +91,9 @@ Exceptions are written inline as `#checkov:skip=<ID>:<reason>` so they show up i
 `--mode detect` switches every policy to Audit and opens egress for the detect-only run.
 
 ## Runtime detection (phase 5)
+
+GuardDuty findings reach Wazuh via EventBridge -> CloudWatch Logs, and high-severity ones trigger a Lambda
+that quarantines the abused lab role (Deny-all inline policy) or disables a leaked access key.
 
 Falco (modern eBPF) writes JSON events on each node; the Wazuh agent ships them. EKS audit logs reach
 Wazuh through CloudWatch Logs, CloudTrail through S3. Rules are MITRE-mapped and replayed in a real

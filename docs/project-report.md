@@ -53,6 +53,9 @@ flowchart LR
   FALCO -- /var/log/falco/events.json --> AGENT -- 1514 --> WAZUH
   EKS -- audit log --> CW[(CloudWatch Logs)] --> WAZUH
   CT[(CloudTrail → S3)] --> WAZUH
+  GD[GuardDuty] --> EB{EventBridge}
+  EB -- findings --> CW
+  EB -- high severity --> LAM[Lambda auto-fix<br/>quarantine role / disable key]
   APP -. step 4 exfil .-> ATT
 ```
 
@@ -188,13 +191,14 @@ Ngoài ra:
 - **[attack/exfil.py](../attack/exfil.py):** đọc dữ liệu giả ở `/data`, mã hóa body bằng AES-256-GCM, bọc key bằng RSA-OAEP, POST lên attacker host. Script có ba guard giữ nó trong lab: cần biến `CIPHERGUARD_LAB=1`, target phải là IP nội bộ VPC (RFC1918), và chỉ đọc thư mục dữ liệu giả. Script không nằm sẵn trong image mà được thả vào pod lúc chạy, nên chính việc exec script từ `/tmp` cũng là một detection.
 - **Dữ liệu giả:** ConfigMap `demo-app-testdata` (CSV khách hàng giả, secret mồi) mount read-only ở `/data`, bật bằng `testData.enabled`.
 - **[attack/run-attack.sh](../attack/run-attack.sh):** chạy các bước 1–4, D, B, G qua `kubectl exec`, ghi timestamp từng bước để Phase 7 đo độ trễ. Hai lượt: `make attack-detect` và `make attack`.
+- **Cloud auto-fix:** GuardDuty bật (gồm Kubernetes audit log), finding đi qua EventBridge: tới CloudWatch Logs cho Wazuh đọc (rule 100310–100312), và tới Lambda [autofix.py](../infra/terraform/lambda/autofix.py) với finding mức cao (severity ≥ 7). Lambda cô lập credential: gắn inline policy Deny-all lên role bị lạm dụng (chỉ role `cipherguard-*`, không đụng role pipeline hay role của chính Lambda), hoặc vô hiệu access key nếu finding là IAM user. Có chế độ `autofix_dry_run` để chỉ log.
 - **Active Response:** [cipherguard-isolate.sh](../detection/wazuh/active-response/cipherguard-isolate.sh) chạy trên node khi rule 100113, 100114, 100117 hoặc 100130 fire. Nó dùng `crictl` cô lập đúng container của pod bị tấn công, **không** đụng node, nên node vẫn kết nối Wazuh. AR chỉ bật ở lượt prevent, để không cắt ngang việc thu thập alert ở detect-only.
 
 **Quyết định thiết kế:**
 - **Pod demo đã gỡ pip (Phase 3),** nên `exfil.py` không tự cài được `cryptography` trong pod. `run-attack.sh` chuẩn bị wheel trước (`attack/vendor-deps.sh`) rồi copy vào `/tmp`. Nếu thiếu wheel, runner vẫn chạy phần đọc `/data` và gửi để Falco kích hoạt, và báo rõ là chưa mã hóa.
 - **Cô lập container thay vì xóa pod,** để giữ tiêu chí "node vẫn kết nối Wazuh". Xóa pod thì Deployment tạo lại ngay; cô lập container cho thấy phản hồi rõ hơn và vẫn để lại pod cho điều tra.
 
-**Kiểm chứng offline:** logic mã hóa (AES-256-GCM + RSA-OAEP) và cả ba guard đã test trực tiếp bằng Python. Script AR đã test với `crictl` giả: cô lập container khi có `container.id`, không hành động với event mức host, no-op khi Wazuh gọi rollback. Config AR được `wazuh-analysisd -t` chấp nhận trong detection gate. Private key của cặp RSA lab không commit (gitignore), chỉ giữ public key.
+**Kiểm chứng offline:** logic mã hóa (AES-256-GCM + RSA-OAEP) và cả ba guard đã test trực tiếp bằng Python. Script AR đã test với `crictl` giả: cô lập container khi có `container.id`, không hành động với event mức host, no-op khi Wazuh gọi rollback. Config AR được `wazuh-analysisd -t` chấp nhận trong detection gate. Lambda auto-fix đã test với finding GuardDuty mẫu ở chế độ dry-run: cô lập role `cipherguard-node-*`, bỏ qua role `cipherguard-gha-*`, role của chính nó và role ngoài phạm vi, vô hiệu access key khi finding là IAM user. Rule GuardDuty (3 case) chạy qua `wazuh-analysisd`. Private key của cặp RSA lab không commit (gitignore), chỉ giữ public key.
 
 ### Phase 7: Kiểm chứng và đo đạc
 
@@ -238,7 +242,10 @@ Ngoài ra:
 | Kyverno `ClusterPolicy` | `ValidatingPolicy` và `ImageValidatingPolicy` viết bằng CEL | Kyverno 1.20 đã bỏ API cũ |
 | ECR nằm trong lab | ECR nằm trong bootstrap | Image và chữ ký còn lại sau khi destroy |
 | Wazuh 4.12 (kế hoạch ban đầu) | 4.14.10 | Bản 4.x mới nhất lúc làm |
+| EventBridge + Lambda fix "optional" | Đã làm đầy đủ | Để khớp 100% architecture; auto-fix có guard và chế độ dry-run |
 | — | Thêm negative test, Kyverno CLI test, logtest replay | Chứng minh mỗi gate và rule thật sự hoạt động, không chỉ là đã được cài |
+
+Toàn bộ 14 layer trong tech stack và cả bốn thành phần nhánh cloud response (CloudTrail, GuardDuty, EventBridge, Lambda) đều đã có.
 
 ## 6. Chi phí và vận hành
 
