@@ -30,16 +30,24 @@ NAT_EIP="$(aws ec2 describe-nat-gateways --region "$REGION" \
   --query 'NatGateways[0].NatGatewayAddresses[0].PublicIp' --output text)"
 BUCKET="$PROJECT-cloudtrail-$ACCOUNT"
 LOG_GROUP="/aws/eks/$PROJECT-eks/cluster"
+GUARDDUTY_LOG_GROUP="/$PROJECT/guardduty"
 
 STAGE="$(mktemp -d)"
 trap 'rm -rf "$STAGE"' EXIT
 cp -r "$ROOT/detection/wazuh/." "$STAGE/"
 NAT_RE="${NAT_EIP//./\\\\.}"
 sed -i "s/__NAT_EIP__/$NAT_RE/g" "$STAGE"/rules/*.xml
-sed -i -e "s|__REGION__|$REGION|g" -e "s|__EKS_LOG_GROUP__|$LOG_GROUP|g" -e "s|__CLOUDTRAIL_BUCKET__|$BUCKET|g" "$STAGE/ossec-aws.xml"
+sed -i -e "s|__REGION__|$REGION|g" -e "s|__EKS_LOG_GROUP__|$LOG_GROUP|g" \
+       -e "s|__CLOUDTRAIL_BUCKET__|$BUCKET|g" -e "s|__GUARDDUTY_LOG_GROUP__|$GUARDDUTY_LOG_GROUP|g" \
+       "$STAGE/ossec-aws.xml"
 if ! aws s3api head-bucket --bucket "$BUCKET" >/dev/null 2>&1; then
   echo "No lab CloudTrail bucket; CloudTrail input disabled."
   sed -i '/cipherguard:cloudtrail:begin/,/cipherguard:cloudtrail:end/d' "$STAGE/ossec-aws.xml"
+fi
+if ! aws logs describe-log-groups --region "$REGION" --log-group-name-prefix "$GUARDDUTY_LOG_GROUP" \
+     --query 'logGroups[0].logGroupName' --output text 2>/dev/null | grep -q "$GUARDDUTY_LOG_GROUP"; then
+  echo "No GuardDuty log group; GuardDuty input disabled."
+  sed -i '/cipherguard:guardduty:begin/,/cipherguard:guardduty:end/d' "$STAGE/ossec-aws.xml"
 fi
 
 # AR is opt-in: apply.sh merges ossec-ar.xml only when it is in the bundle.

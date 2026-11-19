@@ -1,0 +1,34 @@
+<!--
+  CipherGuard: GuardDuty findings delivered as EventBridge events to a
+  CloudWatch Logs group, read by the Wazuh AWS cloudwatchlogs module.
+  IDs 100310-100399.
+-->
+<group name="cipherguard,guardduty,">
+
+  <rule id="100310" level="3">
+    <decoded_as>json</decoded_as>
+    <field name="source">^aws\.guardduty$</field>
+    <field name="detail-type">^GuardDuty Finding$</field>
+    <description>GuardDuty finding: $(detail.type)</description>
+  </rule>
+
+  <!-- High severity (>= 7) is what the auto-fix Lambda also acts on. -->
+  <rule id="100311" level="10">
+    <if_sid>100310</if_sid>
+    <field name="detail.severity" type="pcre2">^(7|8|9|10)(\.\d+)?$</field>
+    <description>GuardDuty HIGH severity ($(detail.severity)): $(detail.type)</description>
+    <mitre><id>T1078</id></mitre>
+    <group>cipherguard_scenario_i,</group>
+  </rule>
+
+  <!-- Scenario D: node instance credentials used off-box. The auto-fix Lambda
+       quarantines the role; this is the alert side of the same event. -->
+  <rule id="100312" level="12">
+    <if_sid>100311</if_sid>
+    <field name="detail.type" type="pcre2">InstanceCredentialExfiltration</field>
+    <description>GuardDuty: node credential exfiltration - $(detail.type)</description>
+    <mitre><id>T1552.005</id></mitre>
+    <group>cipherguard_scenario_d,cipherguard_autofix,</group>
+  </rule>
+
+</group>

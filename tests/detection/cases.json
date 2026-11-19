@@ -155,6 +155,24 @@
     },
 
     {
+      "name": "guardduty: node credential exfiltration (high) -> scenario D",
+      "location": "Wazuh-AWS",
+      "expect": "100312", "mitre": "T1552.005",
+      "event": {"version": "0", "id": "g1", "detail-type": "GuardDuty Finding", "source": "aws.guardduty", "account": "123456789012", "region": "ap-southeast-1", "detail": {"severity": 8, "type": "UnauthorizedAccess:IAMUser/InstanceCredentialExfiltration.InsideAWS", "resource": {"accessKeyDetails": {"userType": "AssumedRole", "userName": "cipherguard-node-20261119"}}}}
+    },
+    {
+      "name": "guardduty: other high-severity finding",
+      "location": "Wazuh-AWS",
+      "expect": "100311", "mitre": "T1078",
+      "event": {"version": "0", "id": "g2", "detail-type": "GuardDuty Finding", "source": "aws.guardduty", "account": "123456789012", "region": "ap-southeast-1", "detail": {"severity": 7.5, "type": "UnauthorizedAccess:EC2/MaliciousIPCaller.Custom"}}
+    },
+    {
+      "name": "guardduty: low-severity finding is informational only",
+      "location": "Wazuh-AWS",
+      "expect": "100310",
+      "event": {"version": "0", "id": "g3", "detail-type": "GuardDuty Finding", "source": "aws.guardduty", "account": "123456789012", "region": "ap-southeast-1", "detail": {"severity": 2, "type": "Recon:EC2/PortProbeUnprotectedPort"}}
+    },
+    {
       "name": "agent disconnected",
       "location": "wazuh-monitord",
       "expect": "100140", "mitre": "T1562.001",

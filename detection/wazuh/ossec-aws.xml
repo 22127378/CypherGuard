@@ -17,6 +17,12 @@
       <aws_log_groups>__EKS_LOG_GROUP__</aws_log_groups>
       <regions>__REGION__</regions>
     </service>
+    <!-- cipherguard:guardduty:begin -->
+    <service type="cloudwatchlogs">
+      <aws_log_groups>__GUARDDUTY_LOG_GROUP__</aws_log_groups>
+      <regions>__REGION__</regions>
+    </service>
+    <!-- cipherguard:guardduty:end -->
   </wodle>
 </ossec_config>
 <!-- cipherguard:aws:end -->

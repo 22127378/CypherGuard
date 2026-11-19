@@ -128,6 +128,7 @@ JSON
   cp "$ROOT/detection/wazuh/shared/eks-nodes/agent.conf" "$tmp/agent.conf"
   sed -e 's|__REGION__|ap-southeast-1|g' -e 's|__EKS_LOG_GROUP__|/aws/eks/cipherguard-eks/cluster|g' \
       -e 's|__CLOUDTRAIL_BUCKET__|cipherguard-cloudtrail-123456789012|g' \
+      -e 's|__GUARDDUTY_LOG_GROUP__|/cipherguard/guardduty|g' \
       "$ROOT/detection/wazuh/ossec-aws.xml" >"$tmp/ossec-aws.xml"
   cp "$ROOT/detection/wazuh/ossec-ar.xml" "$tmp/ossec-ar.xml"
   cp "$ROOT/detection/wazuh/active-response/cipherguard-isolate.sh" "$tmp/cipherguard-isolate.sh"
