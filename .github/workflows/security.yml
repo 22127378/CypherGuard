@@ -43,6 +43,13 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - run: scripts/scan.sh policies
 
+  # Falco rules validate; Wazuh rules replayed against sample events in a real analysisd.
+  detection:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - run: scripts/scan.sh detection
+
   # Proves the gates work: each scanner must reject a known-bad fixture.
   negative:
     runs-on: ubuntu-latest
