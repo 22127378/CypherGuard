@@ -1,5 +1,10 @@
 data "aws_caller_identity" "current" {}
 
+# Created by infra/bootstrap; kept across lab sessions.
+data "aws_ecr_repository" "demo_app" {
+  name = "${local.name}/demo-app"
+}
+
 # IRSA role for the demo app. Deliberately narrow: it may read only its own SSM
 # parameters, so the escalation step (3) and scenario I produce AccessDenied
 # events in CloudTrail when the attacker tries S3 or IAM calls.

@@ -1,0 +1,66 @@
+name: build
+
+# PR: build only. Main: build and push to ECR (tag = commit SHA).
+# Phase 3 adds gitleaks/hadolint/Semgrep/Trivy, SBOM and Cosign signing here.
+on:
+  pull_request:
+    paths:
+      - "app/**"
+      - ".github/workflows/build.yml"
+  push:
+    branches: [main]
+    paths:
+      - "app/**"
+      - ".github/workflows/build.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  AWS_REGION: ap-southeast-1
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: build (PR, no push)
+        if: github.event_name == 'pull_request'
+        uses: docker/build-push-action@v6
+        with:
+          context: app
+          push: false
+          tags: demo-app:${{ github.sha }}
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        if: github.event_name != 'pull_request'
+        with:
+          role-to-assume: ${{ vars.AWS_ECR_PUSH_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: gha-build-${{ github.run_id }}
+
+      - id: ecr
+        if: github.event_name != 'pull_request'
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - id: push
+        name: build and push
+        if: github.event_name != 'pull_request'
+        uses: docker/build-push-action@v6
+        with:
+          context: app
+          push: true
+          provenance: false
+          tags: ${{ steps.ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}:${{ github.sha }}
+
+      - name: summary
+        if: github.event_name != 'pull_request'
+        run: |
+          echo "Pushed \`${{ steps.ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}@${{ steps.push.outputs.digest }}\`" >> "$GITHUB_STEP_SUMMARY"

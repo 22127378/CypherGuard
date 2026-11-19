@@ -30,6 +30,20 @@ module "eks" {
   authentication_mode                      = "API"
   enable_cluster_creator_admin_permissions = true
 
+  # Extra cluster admins (your IAM user/role), so kubectl works whether the lab
+  # was created locally or by the pipeline role.
+  access_entries = {
+    for i, arn in var.cluster_admin_arns : "admin-${i}" => {
+      principal_arn = arn
+      policy_associations = {
+        admin = {
+          policy_arn   = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+          access_scope = { type = "cluster" }
+        }
+      }
+    }
+  }
+
   cluster_addons = {
     coredns    = {}
     kube-proxy = {}
@@ -45,9 +59,13 @@ module "eks" {
   eks_managed_node_groups = {
     default = {
       # AL2023 kernel supports Falco's modern eBPF probe (no kernel module needed).
-      ami_type       = "AL2023_x86_64_STANDARD"
-      instance_types = var.node_instance_types
-      capacity_type  = "ON_DEMAND"
+      ami_type = "AL2023_x86_64_STANDARD"
+
+      # cipherguard-* prefix so the pipeline apply role can manage it.
+      iam_role_name            = "${local.name}-node"
+      iam_role_use_name_prefix = true
+      instance_types           = var.node_instance_types
+      capacity_type            = "ON_DEMAND"
 
       min_size     = 1
       max_size     = 3

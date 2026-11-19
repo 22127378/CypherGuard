@@ -1,7 +1,9 @@
+# ECR lives in bootstrap so images and signatures survive lab destroy and the
+# build pipeline works even when the lab is down.
+
 resource "aws_ecr_repository" "demo_app" {
-  name                 = "${local.name}/demo-app"
+  name                 = "${var.project}/demo-app"
   image_tag_mutability = "IMMUTABLE" # scenario H: tags cannot be overwritten
-  force_delete         = true        # lab is destroyed every session
 
   image_scanning_configuration {
     scan_on_push = true
@@ -26,4 +28,8 @@ resource "aws_ecr_lifecycle_policy" "demo_app" {
       action = { type = "expire" }
     }]
   })
+}
+
+output "ecr_repository_url" {
+  value = aws_ecr_repository.demo_app.repository_url
 }

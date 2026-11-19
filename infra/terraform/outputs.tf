@@ -11,7 +11,7 @@ output "kubeconfig_command" {
 }
 
 output "ecr_repository_url" {
-  value = aws_ecr_repository.demo_app.repository_url
+  value = data.aws_ecr_repository.demo_app.repository_url
 }
 
 output "demo_app_role_arn" {

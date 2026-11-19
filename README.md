@@ -8,8 +8,10 @@ See [docs/attack-scenarios.md](docs/attack-scenarios.md) for the attack chain.
 ## Layout
 
 ```
-infra/bootstrap/   one-time: S3 state bucket, DynamoDB lock, AWS Budget (persistent)
-infra/terraform/   the lab: VPC, EKS, Wazuh, attacker host, ECR, IRSA role (destroyed every session)
+infra/bootstrap/   persistent: S3 state, DynamoDB lock, budget, ECR, GitHub OIDC roles
+infra/terraform/   the lab: VPC, EKS, Wazuh, attacker host, IRSA role (destroyed every session)
+app/               demo application (attack target)
+.github/workflows/ terraform (plan on PR, approved apply/destroy) and build (push to ECR)
 attack/            attack simulation (receiver runs on the attacker host)
 docs/              scenarios and notes
 ```
@@ -21,6 +23,9 @@ cd infra/bootstrap
 echo 'budget_alert_email = "you@example.com"' > terraform.tfvars
 cd ../.. && make bootstrap        # also writes infra/terraform/backend.hcl
 ```
+
+Then configure GitHub (variables, `lab` environment, branch protection): [docs/github-setup.md](docs/github-setup.md).
+The lab can be created locally (`make up`) or from Actions > terraform > Run workflow.
 
 ## Each session
 

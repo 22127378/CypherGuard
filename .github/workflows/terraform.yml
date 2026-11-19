@@ -1,0 +1,128 @@
+name: terraform
+
+# PR: fmt/validate + plan (read-only role).
+# Manual run on main: plan -> approval on environment "lab" -> apply or destroy.
+on:
+  pull_request:
+    paths:
+      - "infra/**"
+      - ".github/workflows/terraform.yml"
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "apply = create/update the lab, destroy = tear it down"
+        type: choice
+        options: [apply, destroy]
+        default: apply
+
+permissions:
+  contents: read
+
+concurrency:
+  group: terraform-lab
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: ap-southeast-1
+  TF_VERSION: 1.14.6
+  TF_DIR: infra/terraform
+  TF_IN_AUTOMATION: "true"
+  TF_INPUT: "false"
+  TF_VAR_admin_cidr: ${{ vars.ADMIN_CIDR }}
+  TF_VAR_cluster_admin_arns: ${{ vars.CLUSTER_ADMIN_ARNS || '[]' }}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+      - name: fmt
+        run: terraform fmt -check -recursive infra
+      - name: validate bootstrap
+        run: terraform -chdir=infra/bootstrap init -backend=false && terraform -chdir=infra/bootstrap validate
+      - name: validate lab
+        run: terraform -chdir=$TF_DIR init -backend=false && terraform -chdir=$TF_DIR validate
+
+  plan:
+    needs: check
+    # Forks get no OIDC token; only plan for branches in this repo.
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_PLAN_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: gha-plan-${{ github.run_id }}
+      - name: init
+        run: >
+          terraform -chdir=$TF_DIR init
+          -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}"
+          -backend-config="key=lab/terraform.tfstate"
+          -backend-config="region=$AWS_REGION"
+          -backend-config="dynamodb_table=${{ vars.TF_LOCK_TABLE }}"
+          -backend-config="encrypt=true"
+      - name: plan
+        run: |
+          DESTROY=""
+          if [ "${{ inputs.action }}" = "destroy" ]; then DESTROY="-destroy"; fi
+          terraform -chdir=$TF_DIR plan $DESTROY -no-color -out=tfplan | tee plan.txt
+          {
+            echo "### Terraform plan (${{ inputs.action || 'pull request' }})"
+            echo '```'
+            grep -E '^(Plan:|No changes|  [#~+-])' plan.txt | head -200
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: upload plan
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan
+          path: ${{ env.TF_DIR }}/tfplan
+          retention-days: 1
+
+  apply:
+    needs: plan
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    # Required reviewers on this environment = manual approval before apply.
+    environment: lab
+    timeout-minutes: 90
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_APPLY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: gha-apply-${{ github.run_id }}
+          role-duration-seconds: 7200
+      - uses: actions/download-artifact@v4
+        with:
+          name: tfplan
+          path: ${{ env.TF_DIR }}
+      - name: init
+        run: >
+          terraform -chdir=$TF_DIR init
+          -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}"
+          -backend-config="key=lab/terraform.tfstate"
+          -backend-config="region=$AWS_REGION"
+          -backend-config="dynamodb_table=${{ vars.TF_LOCK_TABLE }}"
+          -backend-config="encrypt=true"
+      - name: apply reviewed plan
+        run: terraform -chdir=$TF_DIR apply -no-color tfplan

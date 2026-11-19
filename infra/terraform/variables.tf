@@ -20,6 +20,12 @@ variable "admin_cidr" {
   }
 }
 
+variable "cluster_admin_arns" {
+  description = "IAM user/role ARNs given cluster-admin access (e.g. your own IAM identity)."
+  type        = list(string)
+  default     = []
+}
+
 variable "vpc_cidr" {
   type    = string
   default = "10.20.0.0/16"
