@@ -305,10 +305,36 @@ sudo tail /var/ossec/logs/active-responses.log
 | Nguồn | Độ trễ thường gặp |
 |---|---|
 | Falco → file → Wazuh agent | Vài giây |
-| EKS audit → CloudWatch → Wazuh (poll mỗi 30 giây) | Khoảng 30–90 giây, sẽ đo ở Phase 7 |
+| EKS audit → CloudWatch → Wazuh (poll mỗi 30 giây) | Khoảng 30–90 giây |
 | CloudTrail → S3 → Wazuh | 5–15 phút, chỉ là bằng chứng bổ sung |
 
-## 6. Dọn dẹp
+## 6. Đo và kiểm tra (Phase 7)
+
+**Đo độ trễ.** Chạy chuỗi detect-only rồi đo thời gian mỗi rule báo động:
+
+```bash
+make measure
+```
+
+Script ghi epoch lúc bắt đầu, chạy `run-attack.sh --mode detect`, chờ, rồi hỏi Wazuh manager (qua SSM) thời điểm alert đầu tiên của mỗi rule. Nó in bảng với ngưỡng mục tiêu: 60 giây cho rule Falco, 90 giây cho EKS audit, 15 phút cho CloudTrail. Các bước chạy trong khoảng 20 giây đầu nên độ trễ end-to-end xấp xỉ độ trễ từng bước.
+
+**Baseline false positive.** Sinh hoạt động bình thường rồi kiểm tra không có alert critical:
+
+```bash
+make baseline                          # mặc định 1 giờ
+CG_BASELINE_SECONDS=86400 scripts/baseline.sh   # bài 24 giờ đầy đủ
+```
+
+**Falco event-generator.** Kiểm tra toàn tuyến Falco → Wazuh bằng bộ sinh event chuẩn (dùng ruleset mặc định, bổ sung cho chuỗi tấn công vốn kiểm tra rule custom):
+
+```bash
+kubectl apply -f tests/detection/falco-eventgen-job.yaml
+kubectl -n falco logs -f job/falco-event-generator
+# kiểm tra Falco alert trong Wazuh, rồi xóa:
+kubectl -n falco delete job falco-event-generator
+```
+
+## 7. Dọn dẹp
 
 ```bash
 kubectl -n demo delete pod evil --ignore-not-found

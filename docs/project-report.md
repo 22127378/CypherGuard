@@ -1,7 +1,7 @@
 # Báo cáo dự án CipherGuard v2.0
 
 **Secure Container Pipeline with Kubernetes Runtime Detection**
-Cập nhật: 19/11/2026 · Trạng thái: đã code xong Phase 1–6, Phase 7 chưa làm
+Cập nhật: 19/11/2026 · Trạng thái: đã code xong Phase 1–7; còn lại là chạy, đo và viết write-up trên lab thật
 
 ## 1. Tóm tắt
 
@@ -196,9 +196,23 @@ Ngoài ra:
 
 **Kiểm chứng offline:** logic mã hóa (AES-256-GCM + RSA-OAEP) và cả ba guard đã test trực tiếp bằng Python. Script AR đã test với `crictl` giả: cô lập container khi có `container.id`, không hành động với event mức host, no-op khi Wazuh gọi rollback. Config AR được `wazuh-analysisd -t` chấp nhận trong detection gate. Private key của cặp RSA lab không commit (gitignore), chỉ giữ public key.
 
-### Phase 7: Chưa làm
+### Phase 7: Kiểm chứng và đo đạc
 
-Đo độ trễ thực tế, chạy baseline 24 giờ để đo false positive, chạy Falco event-generator, viết blog và quay video demo.
+**Đã làm (công cụ):**
+- **[scripts/measure-latency.sh](../scripts/measure-latency.sh):** chạy chuỗi detect-only, rồi hỏi Wazuh manager (qua SSM) thời điểm alert đầu tiên của mỗi rule và in bảng độ trễ với ngưỡng mục tiêu theo nguồn (Falco 60s, audit 90s, CloudTrail 15 phút).
+- **[scripts/baseline.sh](../scripts/baseline.sh):** sinh traffic bình thường tới demo app và hoạt động admin, rồi đếm alert critical. Mặc định 1 giờ, đặt `CG_BASELINE_SECONDS=86400` cho bài 24 giờ.
+- **[detection/wazuh/query-alerts.sh](../detection/wazuh/query-alerts.sh):** chạy trên manager, đọc `alerts.json`, trả về alert sớm nhất mỗi rule hoặc số alert critical kể từ một mốc thời gian. Parser đã test offline với log mẫu (lấy đúng alert sớm nhất, bỏ event cũ và benign).
+- **[tests/detection/falco-eventgen-job.yaml](../tests/detection/falco-eventgen-job.yaml):** chạy `falco/event-generator` trong namespace `falco` để kiểm tra toàn tuyến Falco → Wazuh với ruleset mặc định.
+
+**Chưa làm (cần lab thật):** chạy `make measure` và `make baseline` để lấy số thật, bài baseline 24 giờ, viết blog và quay video. Phần này là chạy và đo, không thêm code.
+
+**Số liệu kỳ vọng** (dựa trên đường truyền, sẽ xác nhận bằng `make measure`):
+
+| Nguồn | Độ trễ kỳ vọng | Đạt mục tiêu 60s |
+|---|---|---|
+| Falco (bước 1, 2, 4, D, B, G) | Vài giây | Có |
+| EKS audit (bước 0, 1, 2, 3) | 30–90 giây | Thường đạt, sát ngưỡng |
+| CloudTrail (bước 3, scenario D) | 5–15 phút | Không, là lớp bổ sung |
 
 ## 4. Tiến độ theo tiêu chí thành công trong proposal
 
@@ -214,7 +228,7 @@ Ngoài ra:
 | Lượt prevent chặn pod privileged và exfil nhưng vẫn có alert | Phần chặn đã test bằng CLI. Phần alert chờ chạy lab |
 | Hành động phản hồi được log, node vẫn kết nối được Wazuh | Code xong (Active Response cô lập container, log ra `active-responses.log`). Chạy thật chờ lab |
 | Smoke test pass mỗi lần deploy | Đã có `scripts/smoke.sh` |
-| Không có false positive critical trong 24 giờ baseline | Phase 7 |
+| Không có false positive critical trong 24 giờ baseline | Công cụ xong (`make baseline`). Bài 24 giờ chờ lab |
 
 ## 5. So với proposal
 
