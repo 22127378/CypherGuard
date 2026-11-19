@@ -1,0 +1,26 @@
+#!/bin/bash
+# Wazuh all-in-one install (manager + indexer + dashboard).
+set -euxo pipefail
+exec > >(tee -a /var/log/cipherguard-userdata.log) 2>&1
+
+export DEBIAN_FRONTEND=noninteractive
+apt-get update -y
+apt-get install -y curl tar unzip
+snap install aws-cli --classic || true
+
+cd /root
+curl -sSfO "https://packages.wazuh.com/${wazuh_version}/wazuh-install.sh"
+bash ./wazuh-install.sh -a -i
+
+# Push the generated admin password to SSM Parameter Store.
+ADMIN_PW=$(tar -O -xf wazuh-install-files.tar wazuh-install-files/wazuh-passwords.txt \
+  | grep -A1 "indexer_username: 'admin'" | grep indexer_password | awk -F"'" '{print $2}')
+
+/snap/bin/aws ssm put-parameter \
+  --region "${region}" \
+  --name "${param_name}" \
+  --type SecureString \
+  --overwrite \
+  --value "$ADMIN_PW"
+
+echo "Wazuh install complete"

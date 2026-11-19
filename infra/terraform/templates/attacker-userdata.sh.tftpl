@@ -1,0 +1,34 @@
+#!/bin/bash
+# Attacker host: a tiny HTTP receiver for the synthetic exfiltration test.
+set -euxo pipefail
+exec > >(tee -a /var/log/cipherguard-userdata.log) 2>&1
+
+dnf install -y python3
+
+useradd --system --no-create-home --shell /sbin/nologin receiver || true
+install -d -o receiver -g receiver -m 0750 /var/lib/receiver
+
+cat > /usr/local/bin/receiver.py <<'PYEOF'
+${receiver_script}
+PYEOF
+chmod 0755 /usr/local/bin/receiver.py
+
+cat > /etc/systemd/system/receiver.service <<'UNIT'
+[Unit]
+Description=CipherGuard exfil receiver (lab only)
+After=network-online.target
+
+[Service]
+User=receiver
+ExecStart=/usr/bin/python3 /usr/local/bin/receiver.py --port ${port} --out /var/lib/receiver
+Restart=on-failure
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/receiver
+
+[Install]
+WantedBy=multi-user.target
+UNIT
+
+systemctl daemon-reload
+systemctl enable --now receiver.service

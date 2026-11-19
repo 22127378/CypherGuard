@@ -1,0 +1,6 @@
+# Copy to terraform.tfvars (git-ignored) and fill in.
+admin_cidr = "203.0.113.10/32" # curl -s https://checkip.amazonaws.com
+
+# Optional overrides
+# cluster_version     = "1.33"
+# node_instance_types = ["t3.large"]
