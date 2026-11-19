@@ -59,7 +59,17 @@ spec:
           volumeMounts:
             - name: tmp
               mountPath: /tmp
+            {{- if .Values.testData.enabled }}
+            - name: testdata
+              mountPath: /data
+              readOnly: true
+            {{- end }}
       volumes:
         - name: tmp
           emptyDir:
             sizeLimit: 16Mi
+        {{- if .Values.testData.enabled }}
+        - name: testdata
+          configMap:
+            name: demo-app-testdata
+        {{- end }}

@@ -1,0 +1,13 @@
+{{- if .Values.testData.enabled }}
+# Synthetic decoy data mounted read-only at /data. The exfiltration step reads
+# this (Falco rule CipherGuard Sensitive Data Read). It is fake by construction.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: demo-app-testdata
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "demo-app.labels" . | nindent 4 }}
+data:
+  {{- (.Files.Glob "data/*").AsConfig | nindent 2 }}
+{{- end }}

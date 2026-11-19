@@ -23,6 +23,10 @@ resources:
     cpu: 250m
     memory: 128Mi
 
+# Synthetic decoy data mounted at /data for the exfiltration step (phase 6).
+testData:
+  enabled: true
+
 networkPolicy:
   # enforce: default-deny ingress/egress with narrow allows (prevent run)
   # open:    allow all egress (detect-only run, so exfiltration reaches the attacker host)

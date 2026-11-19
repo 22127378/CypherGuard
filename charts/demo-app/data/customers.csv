@@ -1,0 +1,5 @@
+# SYNTHETIC test data for the CipherGuard exfiltration demo. Not real people.
+id,name,email,ssn,card
+1,Test User One,user1@example.invalid,000-00-0001,4111111111111111
+2,Test User Two,user2@example.invalid,000-00-0002,4111111111111112
+3,Test User Three,user3@example.invalid,000-00-0003,4111111111111113
