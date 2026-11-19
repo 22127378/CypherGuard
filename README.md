@@ -17,13 +17,13 @@ app/               demo application (attack target)
 charts/demo-app/   Helm chart: digest-only image, IRSA, no API token, PSS restricted, NetworkPolicy, RBAC
 charts/cluster-policies/  Kyverno 1.20 CEL policies (signatures, registries, PSS, RBAC guardrail)
 platform/          namespaces (native PSA), Kyverno and Falco chart values
-detection/         Falco rules, Wazuh rules, agent group config, AWS module block
+detection/         Falco rules, Wazuh rules, agent config, AWS module, Active Response
 .github/workflows/ security (scanners + negative tests), build (Trivy, push, SBOM, Cosign), terraform
 scripts/scan.sh    all scanners in pinned containers; CI and local use the same script
 tests/negative/    deliberately insecure fixtures the pipeline must block
 tests/policies/    Kyverno CLI test suite (attack fixtures must be rejected)
 tests/detection/   sample events replayed through wazuh-analysisd (expected rule IDs)
-attack/            attack simulation (receiver runs on the attacker host)
+attack/            exfil.py (AES-256-GCM+RSA), run-attack.sh chain runner, receiver, lab RSA public key
 docs/              scenarios and notes
 ```
 

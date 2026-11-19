@@ -1,7 +1,7 @@
 # Báo cáo dự án CipherGuard v2.0
 
 **Secure Container Pipeline with Kubernetes Runtime Detection**
-Cập nhật: 19/11/2026 · Trạng thái: đã code xong Phase 1–5, Phase 6–7 chưa làm
+Cập nhật: 19/11/2026 · Trạng thái: đã code xong Phase 1–6, Phase 7 chưa làm
 
 ## 1. Tóm tắt
 
@@ -182,10 +182,23 @@ Ngoài ra:
 - **Rule phát hiện credential của node bị dùng từ IP lạ (100301) sẽ báo động với mọi lời gọi hợp lệ,** vì traffic của node đi qua NAT. Đã loại trừ IP của NAT, được điền vào lúc sync.
 - **`evt.dir` đã lỗi thời trong Falco 0.45.**
 
-### Phase 6–7: Chưa làm
+### Phase 6: Mô phỏng tấn công và phản hồi
 
-- **Phase 6:** viết `attack/exfil.py` (mã hóa AES-256-GCM + RSA, POST tới attacker host), mount `/data` chứa dữ liệu giả, script chạy cả chuỗi tấn công hai lượt. Thêm Wazuh Active Response xóa hoặc cô lập pod, và tùy chọn EventBridge + Lambda.
-- **Phase 7:** đo độ trễ thực tế, chạy baseline 24 giờ để đo false positive, chạy Falco event-generator, viết blog và quay video demo.
+**Đã làm:**
+- **[attack/exfil.py](../attack/exfil.py):** đọc dữ liệu giả ở `/data`, mã hóa body bằng AES-256-GCM, bọc key bằng RSA-OAEP, POST lên attacker host. Script có ba guard giữ nó trong lab: cần biến `CIPHERGUARD_LAB=1`, target phải là IP nội bộ VPC (RFC1918), và chỉ đọc thư mục dữ liệu giả. Script không nằm sẵn trong image mà được thả vào pod lúc chạy, nên chính việc exec script từ `/tmp` cũng là một detection.
+- **Dữ liệu giả:** ConfigMap `demo-app-testdata` (CSV khách hàng giả, secret mồi) mount read-only ở `/data`, bật bằng `testData.enabled`.
+- **[attack/run-attack.sh](../attack/run-attack.sh):** chạy các bước 1–4, D, B, G qua `kubectl exec`, ghi timestamp từng bước để Phase 7 đo độ trễ. Hai lượt: `make attack-detect` và `make attack`.
+- **Active Response:** [cipherguard-isolate.sh](../detection/wazuh/active-response/cipherguard-isolate.sh) chạy trên node khi rule 100113, 100114, 100117 hoặc 100130 fire. Nó dùng `crictl` cô lập đúng container của pod bị tấn công, **không** đụng node, nên node vẫn kết nối Wazuh. AR chỉ bật ở lượt prevent, để không cắt ngang việc thu thập alert ở detect-only.
+
+**Quyết định thiết kế:**
+- **Pod demo đã gỡ pip (Phase 3),** nên `exfil.py` không tự cài được `cryptography` trong pod. `run-attack.sh` chuẩn bị wheel trước (`attack/vendor-deps.sh`) rồi copy vào `/tmp`. Nếu thiếu wheel, runner vẫn chạy phần đọc `/data` và gửi để Falco kích hoạt, và báo rõ là chưa mã hóa.
+- **Cô lập container thay vì xóa pod,** để giữ tiêu chí "node vẫn kết nối Wazuh". Xóa pod thì Deployment tạo lại ngay; cô lập container cho thấy phản hồi rõ hơn và vẫn để lại pod cho điều tra.
+
+**Kiểm chứng offline:** logic mã hóa (AES-256-GCM + RSA-OAEP) và cả ba guard đã test trực tiếp bằng Python. Script AR đã test với `crictl` giả: cô lập container khi có `container.id`, không hành động với event mức host, no-op khi Wazuh gọi rollback. Config AR được `wazuh-analysisd -t` chấp nhận trong detection gate. Private key của cặp RSA lab không commit (gitignore), chỉ giữ public key.
+
+### Phase 7: Chưa làm
+
+Đo độ trễ thực tế, chạy baseline 24 giờ để đo false positive, chạy Falco event-generator, viết blog và quay video demo.
 
 ## 4. Tiến độ theo tiêu chí thành công trong proposal
 
@@ -196,10 +209,10 @@ Ngoài ra:
 | Pipeline chặn thay đổi cố tình sai | **Đạt**: `make negative`, 5/5 |
 | Mọi image có SBOM và chữ ký Cosign hợp lệ, Kyverno từ chối image chưa ký | Code xong. Chạy được khi build lần đầu trên main |
 | Event Falco và EKS audit hiển thị trong Wazuh | Code xong. Rule đã kiểm chứng offline 26/26 |
-| Script exfil gửi được dữ liệu giả trong lượt detect-only | Phase 6 |
+| Script exfil gửi được dữ liệu giả trong lượt detect-only | Code xong (`attack/exfil.py`, mã hóa đã test offline). Gửi thật chờ lab |
 | Wazuh alert các bước 1–4 trong 60 giây | Phase 7 đo. Falco: vài giây. Audit log: khoảng 30–90 giây. CloudTrail không đạt (5–15 phút) |
-| Lượt prevent chặn pod privileged và exfil nhưng vẫn có alert | Phần chặn đã test bằng CLI. Phần alert chờ Phase 6 |
-| Hành động phản hồi được log, node vẫn kết nối được Wazuh | Phase 6 |
+| Lượt prevent chặn pod privileged và exfil nhưng vẫn có alert | Phần chặn đã test bằng CLI. Phần alert chờ chạy lab |
+| Hành động phản hồi được log, node vẫn kết nối được Wazuh | Code xong (Active Response cô lập container, log ra `active-responses.log`). Chạy thật chờ lab |
 | Smoke test pass mỗi lần deploy | Đã có `scripts/smoke.sh` |
 | Không có false positive critical trong 24 giờ baseline | Phase 7 |
 
