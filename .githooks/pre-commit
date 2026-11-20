@@ -23,6 +23,11 @@ while IFS= read -r f; do
       continue ;;
   esac
 
+  # Skip binary files (images, archives): the text checks below don't apply.
+  if git diff --cached --numstat -- "$f" | grep -q '^-'$'\t''-'; then
+    continue
+  fi
+
   # Check the staged content, not the working tree.
   content="$(git show ":$f" 2>/dev/null || true)"
   if grep -qE '^(<<<<<<<|>>>>>>>)( |$)' <<<"$content"; then
