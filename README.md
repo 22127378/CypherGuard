@@ -8,6 +8,12 @@ Docs:
 - [docs/scenarios-guide.md](docs/scenarios-guide.md): how to run each attack scenario and what Wazuh should show (Vietnamese)
 - [docs/attack-scenarios.md](docs/attack-scenarios.md): scenario catalogue and MITRE mapping
 
+## Architecture
+
+![CipherGuard v2.0 architecture](docs/diagram/cipherguard-architecture.png)
+
+Source: [docs/diagram/cipherguard-architecture.drawio](docs/diagram/cipherguard-architecture.drawio) (open in [draw.io](https://app.diagrams.net)); regenerate with `docs/diagram/gen-diagram.py` + `rlespinasse/drawio-export`.
+
 ## Layout
 
 ```
