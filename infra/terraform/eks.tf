@@ -4,10 +4,15 @@ data "aws_iam_session_context" "current" {
 
 locals {
   gha_apply_role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${local.name}-gha-apply"
-  cluster_admin_arns = distinct(concat(
-    [data.aws_iam_session_context.current.issuer_arn, local.gha_apply_role_arn],
-    var.cluster_admin_arns,
-  ))
+  # The dedicated cluster-admin role is always an admin. The deploying identity
+  # and any extra ARNs are added too, except the root user (EKS access entries
+  # reject root) -- root reaches the cluster by assuming cluster_admin instead.
+  cluster_admin_arns = [
+    for arn in distinct(concat(
+      [aws_iam_role.cluster_admin.arn, data.aws_iam_session_context.current.issuer_arn, local.gha_apply_role_arn],
+      var.cluster_admin_arns,
+    )) : arn if !endswith(arn, ":root")
+  ]
 }
 
 module "eks" {

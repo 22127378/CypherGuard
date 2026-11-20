@@ -6,8 +6,13 @@ output "cluster_name" {
   value = module.eks.cluster_name
 }
 
+output "cluster_admin_role_arn" {
+  description = "Assume this role for kubectl access (used by kubeconfig_command)."
+  value       = aws_iam_role.cluster_admin.arn
+}
+
 output "kubeconfig_command" {
-  value = "aws eks update-kubeconfig --region ${var.region} --name ${module.eks.cluster_name}"
+  value = "aws eks update-kubeconfig --region ${var.region} --name ${module.eks.cluster_name} --role-arn ${aws_iam_role.cluster_admin.arn}"
 }
 
 output "ecr_repository_url" {

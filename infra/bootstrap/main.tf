@@ -26,8 +26,9 @@ variable "project" {
 }
 
 variable "budget_alert_email" {
-  description = "Email that receives AWS Budgets alerts."
+  description = "Email for AWS Budgets alerts. Empty = no budget created."
   type        = string
+  default     = ""
 }
 
 variable "monthly_budget_usd" {
@@ -155,6 +156,7 @@ resource "local_file" "backend_hcl" {
 # Budget lives here (persistent), not in the lab stack, so it survives each destroy.
 # Account-wide filter: the lab is the main workload in this account.
 resource "aws_budgets_budget" "lab" {
+  count        = var.budget_alert_email == "" ? 0 : 1
   name         = "${var.project}-monthly"
   budget_type  = "COST"
   limit_amount = tostring(var.monthly_budget_usd)
