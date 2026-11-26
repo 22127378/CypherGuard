@@ -1,0 +1,33 @@
+# The Kyverno chart's reports-controller RBAC does not cover
+# rbac.authorization.k8s.io resources, but deny-cluster-admin-to-serviceaccounts
+# matches ClusterRoleBinding/RoleBinding. Without this, the policy enforces at
+# admission (its webhook is configured) but never reports Ready, because
+# background scanning/reporting lacks permission to read those resources.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cipherguard-kyverno-rbac-reports-access
+  labels:
+    {{- include "cp.labels" . | nindent 4 }}
+rules:
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["clusterrolebindings", "rolebindings"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cipherguard-kyverno-rbac-reports-access
+  labels:
+    {{- include "cp.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cipherguard-kyverno-rbac-reports-access
+subjects:
+  - kind: ServiceAccount
+    name: kyverno-reports-controller
+    namespace: kyverno
+  - kind: ServiceAccount
+    name: kyverno-background-controller
+    namespace: kyverno
