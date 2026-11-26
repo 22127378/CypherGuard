@@ -138,11 +138,18 @@
   priority: WARNING
   tags: [cipherguard, container, mitre_collection, T1005]
 
-# The app only needs DNS and HTTPS to AWS APIs; any other outbound port is suspicious.
+# The app only needs DNS and HTTPS to AWS APIs; any other outbound port is
+# suspicious. Written explicitly (not using the built-in `outbound` macro,
+# whose exact field/completion semantics vary by Falco version) in the same
+# style as the IMDS rule above, which is confirmed working live:
+# fd.sport is the port on the SERVER side of the connection, i.e. the remote
+# port being connected to for an outbound connect().
 - rule: CipherGuard Unexpected Outbound From App Pod
   desc: An app pod opens an outbound connection on a port other than 53 or 443.
   condition: >
-    outbound and cg_app_container and not fd.sport in (53, 443)
+    evt.type = connect and cg_app_container
+    and not fd.sport in (53, 443)
+    and (evt.rawres >= 0 or evt.res = EINPROGRESS)
   output: >
     Unexpected outbound connection (connection=%fd.name proc=%proc.name cmdline=%proc.cmdline
     pod=%k8s.pod.name ns=%k8s.ns.name container_id=%container.id image=%container.image.repository)
