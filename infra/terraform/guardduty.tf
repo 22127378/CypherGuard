@@ -137,15 +137,17 @@ resource "aws_lambda_function" "autofix" {
   #checkov:skip=CKV_AWS_117:No VPC needed; it calls IAM, a global endpoint
   #checkov:skip=CKV_AWS_173:Env vars hold no secrets
   #checkov:skip=CKV_AWS_50:X-Ray not needed for a lab
-  count                          = var.enable_guardduty ? 1 : 0
-  function_name                  = "${local.name}-autofix"
-  role                           = aws_iam_role.autofix[0].arn
-  runtime                        = "python3.13"
-  handler                        = "autofix.handler"
-  filename                       = data.archive_file.autofix[0].output_path
-  source_code_hash               = data.archive_file.autofix[0].output_base64sha256
-  timeout                        = 30
-  reserved_concurrent_executions = 2
+  # No reserved_concurrent_executions: some accounts have a low (e.g. 10) total
+  # unreserved concurrency pool, and reserving any of it there is rejected.
+  # GuardDuty invokes this rarely, so an unreserved default is fine for a lab.
+  count            = var.enable_guardduty ? 1 : 0
+  function_name    = "${local.name}-autofix"
+  role             = aws_iam_role.autofix[0].arn
+  runtime          = "python3.13"
+  handler          = "autofix.handler"
+  filename         = data.archive_file.autofix[0].output_path
+  source_code_hash = data.archive_file.autofix[0].output_base64sha256
+  timeout          = 30
 
   environment {
     variables = {
