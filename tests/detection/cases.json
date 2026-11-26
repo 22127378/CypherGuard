@@ -145,13 +145,19 @@
       "name": "cloudtrail: node role used from attacker IP",
       "location": "Wazuh-AWS",
       "expect": "100301", "mitre": "T1552.005",
-      "event": {"integration": "aws", "aws": {"log_info": {"aws_account_alias": "", "log_file": "x.json.gz", "s3bucket": "cipherguard-cloudtrail-123456789012"}, "eventVersion": "1.10", "userIdentity": {"type": "AssumedRole", "arn": "arn:aws:sts::123456789012:assumed-role/cipherguard-node-20261119/i-0abc123def4567890", "accountId": "123456789012"}, "eventTime": "2026-11-19T04:33:00Z", "eventSource": "sts.amazonaws.com", "eventName": "GetCallerIdentity", "awsRegion": "ap-southeast-1", "sourceIPAddress": "198.51.100.77", "eventType": "AwsApiCall", "source": "cloudtrail"}}
+      "event": {"integration": "aws", "aws": {"log_info": {"aws_account_alias": "", "log_file": "x.json.gz", "s3bucket": "cipherguard-cloudtrail-123456789012"}, "eventVersion": "1.10", "userIdentity": {"type": "AssumedRole", "arn": "arn:aws:sts::123456789012:assumed-role/cipherguard-node-20261119/i-0abc123def4567890", "accountId": "123456789012"}, "eventTime": "2026-11-19T04:33:00Z", "eventSource": "s3.amazonaws.com", "eventName": "ListBuckets", "awsRegion": "ap-southeast-1", "sourceIPAddress": "198.51.100.77", "eventType": "AwsApiCall", "source": "cloudtrail"}}
     },
     {
       "name": "cloudtrail: node role from the NAT EIP is normal",
       "location": "Wazuh-AWS",
       "expect_not": "100301",
       "event": {"integration": "aws", "aws": {"log_info": {"aws_account_alias": "", "log_file": "x.json.gz", "s3bucket": "cipherguard-cloudtrail-123456789012"}, "eventVersion": "1.10", "userIdentity": {"type": "AssumedRole", "arn": "arn:aws:sts::123456789012:assumed-role/cipherguard-node-20261119/i-0abc123def4567890", "accountId": "123456789012"}, "eventTime": "2026-11-19T04:33:05Z", "eventSource": "ecr.amazonaws.com", "eventName": "GetAuthorizationToken", "awsRegion": "ap-southeast-1", "sourceIPAddress": "13.250.1.2", "eventType": "AwsApiCall", "source": "cloudtrail"}}
+    },
+    {
+      "name": "cloudtrail: GetCallerIdentity off-NAT is normal (EKS IAM Authenticator verifying the node, not credential misuse)",
+      "location": "Wazuh-AWS",
+      "expect_not": "100301",
+      "event": {"integration": "aws", "aws": {"log_info": {"aws_account_alias": "", "log_file": "x.json.gz", "s3bucket": "cipherguard-cloudtrail-123456789012"}, "eventVersion": "1.11", "userIdentity": {"type": "AssumedRole", "arn": "arn:aws:sts::123456789012:assumed-role/cipherguard-node-20261119/i-0abc123def4567890", "accountId": "123456789012"}, "eventTime": "2026-11-19T04:33:06Z", "eventSource": "sts.amazonaws.com", "eventName": "GetCallerIdentity", "awsRegion": "ap-southeast-1", "sourceIPAddress": "18.139.155.206", "userAgent": "Go-http-client/1.1", "eventType": "AwsApiCall", "source": "cloudtrail"}}
     },
 
     {

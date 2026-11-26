@@ -23,12 +23,21 @@
     Scenario D: node instance role credentials used from an IP that is not the
     lab NAT Gateway (all legitimate node traffic leaves through it).
     __NAT_EIP__ is filled in by scripts/wazuh-sync.sh.
+
+    sts:GetCallerIdentity is excluded: EKS's IAM Authenticator verifies every
+    node-to-API-server auth token by having the (AWS-managed) control plane
+    itself call GetCallerIdentity with the presigned URL the node embedded in
+    its token. That call is read-only, harmless, and legitimately originates
+    from AWS's own infrastructure, not the node -- confirmed live, it fired
+    ~30 times in a few minutes from normal kubelet traffic alone. Any OTHER
+    API call (s3:*, ec2:Describe*, iam:*, ...) from off-NAT still alerts.
   -->
   <rule id="100301" level="12">
     <if_sid>80200,80202,80203,80250</if_sid>
     <field name="aws.source">^cloudtrail$</field>
     <field name="aws.userIdentity.arn" type="pcre2">:assumed-role/cipherguard-node[^/]*/i-</field>
     <field name="aws.sourceIPAddress" type="pcre2">^(?!__NAT_EIP__$)\d+\.\d+\.\d+\.\d+$</field>
+    <field name="aws.eventName" negate="yes">^GetCallerIdentity$</field>
     <description>Node role credentials used from $(aws.sourceIPAddress): $(aws.eventName)</description>
     <mitre><id>T1552.005</id></mitre>
     <group>cipherguard_scenario_d,</group>
