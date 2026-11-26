@@ -84,6 +84,12 @@ module "eks" {
       # AL2023 kernel supports Falco's modern eBPF probe (no kernel module needed).
       ami_type = "AL2023_x86_64_STANDARD"
 
+      # Required for cloudinit_post_nodeadm (below) to actually be merged into
+      # the launch template's user data. Without this the module silently
+      # drops it and only the default nodeadm bootstrap config is used --
+      # found live: the Wazuh agent and Active Response script never installed.
+      enable_bootstrap_user_data = true
+
       # cipherguard-* prefix so the pipeline apply role can manage it.
       iam_role_name            = "${local.name}-node"
       iam_role_use_name_prefix = true
