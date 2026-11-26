@@ -66,3 +66,46 @@ succession (re-running `wazuh-sync.sh`) left both node agents
 `Disconnected` until manually restarted (`systemctl restart wazuh-agent`
 on each node). `wazuh-sync.sh` should probably verify agents are
 `Active` after a restart and retry/warn if not.
+
+## Update: Active Response root causes found and fixed
+
+After further live investigation (keeping the lab up for a second debugging
+pass):
+
+1. **Confirmed AR dispatch works.** Manager-side debug logging showed
+   `Send AR to execd: cipherguard-isolate0` multiple times, and the script
+   was observed executing on the node (new timestamped log lines) across
+   several independent triggers.
+
+2. **Real bug #1 -- silent parse failure.** The script's Python JSON parsing
+   used `2>/dev/null || true`, which silently swallowed any exception and
+   always fell through to the generic "host-level event" message, with no
+   way to tell a genuine host-level alert from a parsing bug. This masked
+   the real issue for a long time. Fixed: parsing failures are now logged
+   explicitly with the exception and a sample of the raw input.
+
+3. **Real bug #2 -- `crictl` is not installed on this AL2023/containerd EKS
+   node.** The script's own `command -v crictl` check should have caught
+   this and logged "crictl not found", but bug #1 meant it never reached
+   that check (cid always came back empty first). Fixed: switched to `ctr`
+   (containerd's own CLI, confirmed present), using `ctr -n k8s.io`.
+
+4. **New finding -- event delivery degrades under repeated manager
+   restarts.** During this extended debugging session (many `wazuh-sync`
+   calls and manual `wazuh-agent` restarts in quick succession), the
+   Falco -> Wazuh alert pipeline became intermittent: Falco reliably logged
+   every trigger (confirmed in its own pod logs) but a significant fraction
+   never reached Wazuh's `alerts.json`, with no error on either side. This
+   did NOT happen during the original clean run (9/9 rules landed within
+   target). This points to the repeated agent reconnect cycles leaving
+   `wazuh-logcollector`/forwarding in a degraded state, not a bug in the
+   detection rules or the AR mechanism themselves.
+
+**Net result:** both real script bugs are fixed and verified offline
+(4/4 scenarios: isolate, host-level skip, delete no-op, malformed-input
+logging) plus the full 30/30 detection regression suite. The final live
+trigger to directly observe an isolate under the fixed script did not land
+cleanly before the decision was made to stop further live iteration, given
+the event-delivery degradation in point 4 above and session cost. A clean
+single-restart deploy (the normal, non-debugging path) should not exhibit
+this degradation; that is the recommended way to re-verify.
