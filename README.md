@@ -5,6 +5,7 @@ Region: `ap-southeast-1` (Singapore). Pod access to AWS: IRSA.
 
 Docs:
 - [docs/project-report.md](docs/project-report.md): full project report (Vietnamese)
+- [docs/session-report-2026-11-26.md](docs/session-report-2026-11-26.md): first live AWS deploy session — 9 real bugs found and fixed (Vietnamese)
 - [docs/scenarios-guide.md](docs/scenarios-guide.md): how to run each attack scenario and what Wazuh should show (Vietnamese)
 - [docs/attack-scenarios.md](docs/attack-scenarios.md): scenario catalogue and MITRE mapping
 
