@@ -11,12 +11,17 @@ variable "project" {
 }
 
 variable "admin_cidr" {
-  description = "Your public IP in CIDR form (x.x.x.x/32). Only this range can reach the EKS API endpoint."
+  description = <<-EOT
+    Your public IP range that may reach the EKS API endpoint. Prefer a /32
+    (curl -s https://checkip.amazonaws.com). A wider range (up to /24) is
+    allowed only for environments with a rotating egress IP (e.g. a NAT pool
+    or Cloudflare-fronted sandbox) -- keep it as narrow as your network allows.
+  EOT
   type        = string
 
   validation {
-    condition     = can(cidrhost(var.admin_cidr, 0)) && endswith(var.admin_cidr, "/32")
-    error_message = "admin_cidr must be a single /32 address, e.g. 203.0.113.10/32."
+    condition     = can(cidrhost(var.admin_cidr, 0)) && tonumber(split("/", var.admin_cidr)[1]) >= 24
+    error_message = "admin_cidr must be a CIDR of /24 or narrower (prefer /32), e.g. 203.0.113.10/32."
   }
 }
 
