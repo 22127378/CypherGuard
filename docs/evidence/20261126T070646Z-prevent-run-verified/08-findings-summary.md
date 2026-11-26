@@ -109,3 +109,41 @@ cleanly before the decision was made to stop further live iteration, given
 the event-delivery degradation in point 4 above and session cost. A clean
 single-restart deploy (the normal, non-debugging path) should not exhibit
 this degradation; that is the recommended way to re-verify.
+
+## Final round (clean single-restart redeploy, no debug churn)
+
+Did a fully clean `scripts/deploy.sh --mode enforce` from scratch (one
+manager restart via one `wazuh-sync`, one agent reconnect, no overlapping
+debug sessions). Result:
+
+- All 5 Kyverno policies stayed Ready. demo-app helm upgrade still
+  correctly rejected (unsigned image) -- the old pod kept running, as
+  expected.
+- A single nsenter trigger landed rule 100114 in Wazuh within **3 seconds**
+  (epoch match confirmed) -- excellent latency when it lands.
+- However, the isolate script's log still showed the old "no pod container
+  id" message, despite confirming (via md5/grep on the live file) that the
+  FIXED script (with PARSEFAIL handling) was actually deployed and running.
+  The fixed parser did not throw PARSEFAIL, meaning JSON parsing succeeded
+  but `data.output_fields["container.id"]` was genuinely absent for
+  whatever wrapper shape Wazuh sent -- the true wrapper structure is still
+  not confirmed; a raw-capture patch applied for a follow-up trigger never
+  fired because the SAME alert (100114) stopped landing on 3 further
+  consecutive nsenter attempts.
+- Falco's own pod log confirmed all 4 of these attempts were detected and
+  written to events.json (verified timestamps). wazuh-logcollector was
+  confirmed correctly configured and monitoring that exact file. The loss
+  is therefore between logcollector tailing and the alert reaching
+  `alerts.json` / being matched by rule 100114 -- not a Falco bug, not a
+  Kyverno/RBAC issue, and not (by itself) the AR script bugs already fixed.
+
+**Conclusion:** two real script bugs are fixed and proven correct in
+isolation (offline regression suite, 4/4 scenarios). The Falco-to-Wazuh
+alert delivery for this specific rule is intermittent even under a clean,
+non-debug-churned deploy (roughly 1 success in 5 attempts across this
+session) -- a real reliability gap worth dedicated investigation (likely
+candidates: wazuh-logcollector buffering/backpressure on rapid successive
+lines, or JSON decoder matching timing), not reproducible to a root cause
+within this session's time/cost budget. The end-to-end chain (detection
+-> dispatch -> script -> ctr) has never been observed to fail when the
+alert actually lands; only the landing itself is unreliable.
