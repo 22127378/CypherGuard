@@ -4,12 +4,15 @@ data "aws_iam_session_context" "current" {
 
 locals {
   gha_apply_role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${local.name}-gha-apply"
+  # Built as a static string (not aws_iam_role.cluster_admin.arn) so it is known
+  # at plan time: it is used as a for_each key below, which EKS requires.
+  cluster_admin_role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${local.name}-cluster-admin"
   # The dedicated cluster-admin role is always an admin. The deploying identity
   # and any extra ARNs are added too, except the root user (EKS access entries
   # reject root) -- root reaches the cluster by assuming cluster_admin instead.
   cluster_admin_arns = [
     for arn in distinct(concat(
-      [aws_iam_role.cluster_admin.arn, data.aws_iam_session_context.current.issuer_arn, local.gha_apply_role_arn],
+      [local.cluster_admin_role_arn, data.aws_iam_session_context.current.issuer_arn, local.gha_apply_role_arn],
       var.cluster_admin_arns,
     )) : arn if !endswith(arn, ":root")
   ]
