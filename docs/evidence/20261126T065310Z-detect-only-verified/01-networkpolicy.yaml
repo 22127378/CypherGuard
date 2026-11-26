@@ -1,0 +1,79 @@
+apiVersion: v1
+items:
+- apiVersion: networking.k8s.io/v1
+  kind: NetworkPolicy
+  metadata:
+    annotations:
+      meta.helm.sh/release-name: demo-app
+      meta.helm.sh/release-namespace: demo
+    creationTimestamp: "2026-11-26T06:24:18Z"
+    finalizers:
+    - networking.k8s.aws/resources
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: demo-app
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: demo-app
+      app.kubernetes.io/part-of: cipherguard
+      app.kubernetes.io/version: 0.1.0
+    name: default-deny-all
+    namespace: demo
+    resourceVersion: "18969"
+    uid: 1ec3805b-f968-4df7-a5b2-ad68b2605580
+  spec:
+    podSelector: {}
+    policyTypes:
+    - Ingress
+    - Egress
+- apiVersion: networking.k8s.io/v1
+  kind: NetworkPolicy
+  metadata:
+    annotations:
+      meta.helm.sh/release-name: demo-app
+      meta.helm.sh/release-namespace: demo
+    creationTimestamp: "2026-11-26T06:24:18Z"
+    finalizers:
+    - networking.k8s.aws/resources
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: demo-app
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: demo-app
+      app.kubernetes.io/part-of: cipherguard
+      app.kubernetes.io/version: 0.1.0
+      cipherguard.io/network-mode: open
+    name: demo-app
+    namespace: demo
+    resourceVersion: "18966"
+    uid: c92e6801-040a-411b-aa6b-d9a4cf33dab2
+  spec:
+    egress:
+    - ports:
+      - port: 53
+        protocol: UDP
+      - port: 53
+        protocol: TCP
+      to:
+      - namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: kube-system
+        podSelector:
+          matchLabels:
+            k8s-app: kube-dns
+    - {}
+    ingress:
+    - from:
+      - podSelector: {}
+      ports:
+      - port: 8080
+        protocol: TCP
+    podSelector:
+      matchLabels:
+        app.kubernetes.io/instance: demo-app
+        app.kubernetes.io/name: demo-app
+    policyTypes:
+    - Ingress
+    - Egress
+kind: List
+metadata:
+  resourceVersion: ""

@@ -1,0 +1,34 @@
+Target pod: demo-app-745495db99-cwvxx   mode: detect   attacker: 10.20.48.135
+Watch Wazuh: Threat Hunting > Events, filter rule.groups: cipherguard
+
+[13:45:56] === Step 1 foothold: shell in container (Falco 100110, audit 100202) ===
+    shell active as app in demo-app-745495db99-cwvxx
+
+[13:45:57] === Step 2 discovery: read tokens, hit the API (Falco 100112/100111, audit 100203) ===
+    ls: cannot access '/var/run/secrets/kubernetes.io/serviceaccount/': No such file or directory
+    ---
+    eyJhbGciOiJSUzI1NiIsImtpZCI6ImU0ODc5NWJl
+    AWS_ROLE_ARN=arn:aws:iam::728384804953:role/cipherguard-demo-app
+    urllib.error.HTTPError: HTTP Error 401: Unauthorized
+
+[13:46:00] === Scenario D: contact IMDS for node credentials (Falco 100113, CRITICAL) ===
+    IMDS blocked: TimeoutError
+
+[13:46:05] === Step 3 escalation: use pod IAM role for denied AWS calls (CloudTrail 100300) ===
+    botocore.errorfactory.AccessDenied: An error occurred (AccessDenied) when calling the ListBuckets operation: User: arn:aws:sts::728384804953:assumed-role/cipherguard-demo-app/botocore-session-1795675567 is not authorized to perform: s3:ListAllMyBuckets because no identity-based policy allows the s3:ListAllMyBuckets action
+    botocore.exceptions.ClientError: An error occurred (AccessDenied) when calling the ListUsers operation: User: arn:aws:sts::728384804953:assumed-role/cipherguard-demo-app/botocore-session-1795675573 is not authorized to perform: iam:ListUsers on resource: arn:aws:iam::728384804953:user/ because no identity-based policy allows the iam:ListUsers action. Go to https://us-east-1.console.aws.amazon.com/iam/home?region=us-east-1#/authorization-details/945ibip4fpe7msu6vo3fcw0li for complete details, or call the GetRequestAuthorizationDetails API with the following authorization id: 945ibip4fpe7msu6vo3fcw0li
+
+[13:46:15] === Scenario B: escape tooling in container (Falco 100114, CRITICAL) ===
+    nsenter: reassociate to namespaces failed: Operation not permitted
+    (nsenter attempt)
+
+[13:46:16] === Scenario G: run dropped binary from /tmp, wipe history (Falco 100115/100116) ===
+    ran /tmp/x
+    history wiped
+
+[13:46:17] === Step 4 exfiltration: read /data, encrypt, send to attacker (Falco 100119/100120, correlation 100130) ===
+    deps unpacked
+    exfil.py: sent 1122 bytes (2154 encrypted) to 10.20.48.135:8080 -> 200
+
+Detect-only run: expect Wazuh alerts for steps 1-4 within ~60s.
+Attacker received data?  aws ssm start-session --target <attacker-id>  then ls /var/lib/receiver/

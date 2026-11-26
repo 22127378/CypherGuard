@@ -1,0 +1,10 @@
+Starting detect-only attack chain at epoch 1795674329 ...
+Chain done; waiting 80s for audit-log poll + indexing ...
+
+RULE                         LEVEL  LATENCY   TARGET
+----                         -----  -------   ------
+Step1 kubectl exec           8      26s       ok (<=90s)
+ScenD node cred misuse       12     24s       ok (<=900s)
+
+within target: 2   over target: 0
+(CloudTrail rules 100300/100301 use a 15-min target; they back up the faster sources.)

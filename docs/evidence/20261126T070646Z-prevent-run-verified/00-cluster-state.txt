@@ -1,0 +1,12 @@
+# Evidence: prevent-run-verified
+Collected: 2026-11-26T07:06:46Z
+
+## Cluster
+NAME                                             STATUS   ROLES    AGE   VERSION                INTERNAL-IP   EXTERNAL-IP   OS-IMAGE                        KERNEL-VERSION                     CONTAINER-RUNTIME
+ip-10-20-12-43.ap-southeast-1.compute.internal   Ready    <none>   32m   v1.33.13-eks-9adbfea   10.20.12.43   <none>        Amazon Linux 2023.12.20261118   6.12.115-140.210.amzn2023.x86_64   containerd://2.3.7+unknown
+ip-10-20-29-80.ap-southeast-1.compute.internal   Ready    <none>   32m   v1.33.13-eks-9adbfea   10.20.29.80   <none>        Amazon Linux 2023.12.20261118   6.12.115-140.210.amzn2023.x86_64   containerd://2.3.7+unknown
+
+## demo-app pod
+NAME                        READY   STATUS    RESTARTS   AGE   IP            NODE                                             NOMINATED NODE   READINESS GATES
+demo-app-745495db99-48j9l   1/1     Running   0          19m   10.20.4.249   ip-10-20-12-43.ap-southeast-1.compute.internal   <none>           <none>
+demo-app-745495db99-cwvxx   0/1     Error     0          30m   10.20.2.76    ip-10-20-12-43.ap-southeast-1.compute.internal   <none>           <none>

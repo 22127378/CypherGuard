@@ -1,0 +1,4411 @@
+apiVersion: v1
+items:
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: PolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:24:38Z"
+    generation: 2
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 55b6a5f4-b976-45fe-a02b-db8bb5b4b63a
+    namespace: demo
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: RoleBinding
+      name: demo-viewer
+      uid: 55b6a5f4-b976-45fe-a02b-db8bb5b4b63a
+    resourceVersion: "25306"
+    uid: 4a59b07c-2b1a-496e-a282-036455523e72
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 95676897
+      seconds: 1795675291
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    name: demo-viewer
+    namespace: demo
+    uid: 55b6a5f4-b976-45fe-a02b-db8bb5b4b63a
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: PolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:24:38Z"
+    generation: 4
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 60eefc76-7ea1-49d1-b377-e4f8e9f0e49c
+    namespace: demo
+    ownerReferences:
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: demo-app
+      uid: 60eefc76-7ea1-49d1-b377-e4f8e9f0e49c
+    resourceVersion: "31536"
+    uid: ec5efe27-fd44-4229-8283-b3345125034d
+  results:
+  - message: success
+    policy: pod-security-baseline
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: high
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 73827165
+      seconds: 1795676297
+  - message: success
+    policy: pod-security-restricted
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: high
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 122453042
+      seconds: 1795676297
+  - message: success
+    policy: restrict-image-registries
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: high
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 144211337
+      seconds: 1795676297
+  - message: 'image is not signed by the CipherGuard build workflow on main; verification
+      details: image "728384804953.dkr.ecr.ap-southeast-1.amazonaws.com/cipherguard/demo-app@sha256:93f5915a06ffe3e2993961c8e6db790bec8119902cb0e167b28a6e212e4e4deb",
+      attestor "cosign": failed to verify cosign signatures: no signatures found'
+    policy: verify-image-signatures
+    properties:
+      process: admission review
+    result: fail
+    rule: verify-image-signatures
+    scored: true
+    severity: high
+    source: KyvernoImageValidatingPolicy
+    timestamp:
+      nanos: 147932896
+      seconds: 1795674264
+  scope:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: demo-app
+    namespace: demo
+    uid: 60eefc76-7ea1-49d1-b377-e4f8e9f0e49c
+  summary:
+    error: 0
+    fail: 1
+    pass: 3
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: PolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:25:04Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 62c3fcc7-6038-4bcf-a25c-b11519f3ea42
+    namespace: demo
+    ownerReferences:
+    - apiVersion: apps/v1
+      kind: ReplicaSet
+      name: demo-app-745495db99
+      uid: 62c3fcc7-6038-4bcf-a25c-b11519f3ea42
+    resourceVersion: "31540"
+    uid: 1baffc06-5e9d-4c83-b8de-0294cbcb4dbb
+  results:
+  - message: success
+    policy: pod-security-baseline
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: high
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 754306356
+      seconds: 1795676297
+  - message: success
+    policy: pod-security-restricted
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: high
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 819163415
+      seconds: 1795676297
+  - message: success
+    policy: restrict-image-registries
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: high
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 892931116
+      seconds: 1795676297
+  scope:
+    apiVersion: apps/v1
+    kind: ReplicaSet
+    name: demo-app-745495db99
+    namespace: demo
+    uid: 62c3fcc7-6038-4bcf-a25c-b11519f3ea42
+  summary:
+    error: 0
+    fail: 0
+    pass: 3
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: PolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:47:13Z"
+    generation: 4
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 6651e040-0509-4803-8473-2ccfa0e0b53c
+    namespace: demo
+    ownerReferences:
+    - apiVersion: v1
+      kind: Pod
+      name: demo-app-745495db99-48j9l
+      uid: 6651e040-0509-4803-8473-2ccfa0e0b53c
+    resourceVersion: "31757"
+    uid: 5c9feb49-6ddd-452e-9da7-de96b7c371b6
+  results:
+  - message: success
+    policy: pod-security-baseline
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: high
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 720221527
+      seconds: 1795676305
+  - message: success
+    policy: pod-security-restricted
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: high
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 781070277
+      seconds: 1795676305
+  - message: success
+    policy: restrict-image-registries
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: high
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 810214773
+      seconds: 1795676305
+  - message: 'image is not signed by the CipherGuard build workflow on main; verification
+      details: image "728384804953.dkr.ecr.ap-southeast-1.amazonaws.com/cipherguard/demo-app@sha256:93f5915a06ffe3e2993961c8e6db790bec8119902cb0e167b28a6e212e4e4deb",
+      attestor "cosign": failed to verify cosign signatures: no signatures found'
+    policy: verify-image-signatures
+    properties:
+      process: admission review
+    result: fail
+    rule: verify-image-signatures
+    scored: true
+    severity: high
+    source: KyvernoImageValidatingPolicy
+    timestamp:
+      nanos: 182620806
+      seconds: 1795675619
+  scope:
+    apiVersion: v1
+    kind: Pod
+    name: demo-app-745495db99-48j9l
+    namespace: demo
+    uid: 6651e040-0509-4803-8473-2ccfa0e0b53c
+  summary:
+    error: 0
+    fail: 1
+    pass: 3
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: PolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:36:49Z"
+    generation: 5
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: d20e08c3-2d17-47a9-b226-c04032a58259
+    namespace: demo
+    ownerReferences:
+    - apiVersion: v1
+      kind: Pod
+      name: demo-app-745495db99-cwvxx
+      uid: d20e08c3-2d17-47a9-b226-c04032a58259
+    resourceVersion: "31760"
+    uid: 8474bdfa-8817-4c0a-ab24-16b86c60dcb0
+  results:
+  - message: success
+    policy: pod-security-baseline
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: high
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 920337081
+      seconds: 1795676305
+  - message: success
+    policy: pod-security-restricted
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: high
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 949764971
+      seconds: 1795676305
+  - message: success
+    policy: restrict-image-registries
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: high
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 998619929
+      seconds: 1795676305
+  - message: 'image is not signed by the CipherGuard build workflow on main; verification
+      details: image "728384804953.dkr.ecr.ap-southeast-1.amazonaws.com/cipherguard/demo-app@sha256:93f5915a06ffe3e2993961c8e6db790bec8119902cb0e167b28a6e212e4e4deb",
+      attestor "cosign": failed to verify cosign signatures: no signatures found'
+    policy: verify-image-signatures
+    properties:
+      process: admission review
+    result: fail
+    rule: verify-image-signatures
+    scored: true
+    severity: high
+    source: KyvernoImageValidatingPolicy
+    timestamp:
+      nanos: 964595397
+      seconds: 1795674991
+  scope:
+    apiVersion: v1
+    kind: Pod
+    name: demo-app-745495db99-cwvxx
+    namespace: demo
+    uid: d20e08c3-2d17-47a9-b226-c04032a58259
+  summary:
+    error: 0
+    fail: 1
+    pass: 3
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: PolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:51:31Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 0c4af7c1-ce42-4f67-8cc4-b0a7444f115c
+    namespace: falco
+    ownerReferences:
+    - apiVersion: v1
+      kind: Pod
+      name: falco-np7xz
+      uid: 0c4af7c1-ce42-4f67-8cc4-b0a7444f115c
+    resourceVersion: "29007"
+    uid: 3b83dd48-93a8-4a95-9b30-5515e722b0f2
+  results:
+  - message: success
+    policy: verify-image-signatures
+    properties:
+      process: admission review
+    result: pass
+    rule: verify-image-signatures
+    scored: true
+    severity: high
+    source: KyvernoImageValidatingPolicy
+    timestamp:
+      nanos: 457804991
+      seconds: 1795675871
+  scope:
+    apiVersion: v1
+    kind: Pod
+    name: falco-np7xz
+    namespace: falco
+    uid: 0c4af7c1-ce42-4f67-8cc4-b0a7444f115c
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: PolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:51:29Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 70e5127c-9379-4353-a232-cb0a91b42bc1
+    namespace: falco
+    ownerReferences:
+    - apiVersion: apps/v1
+      kind: DaemonSet
+      name: falco
+      uid: 70e5127c-9379-4353-a232-cb0a91b42bc1
+    resourceVersion: "31342"
+    uid: 3b0825cb-d722-488e-aa0e-898c00ff8508
+  results:
+  - message: success
+    policy: verify-image-signatures
+    properties:
+      process: admission review
+    result: pass
+    rule: verify-image-signatures
+    scored: true
+    severity: high
+    source: KyvernoImageValidatingPolicy
+    timestamp:
+      nanos: 52260471
+      seconds: 1795676265
+  scope:
+    apiVersion: apps/v1
+    kind: DaemonSet
+    name: falco
+    namespace: falco
+    uid: 70e5127c-9379-4353-a232-cb0a91b42bc1
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: PolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:51:59Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: c6a15da0-0885-425f-b2cb-8803e6c1a8f4
+    namespace: falco
+    ownerReferences:
+    - apiVersion: v1
+      kind: Pod
+      name: falco-lrsqk
+      uid: c6a15da0-0885-425f-b2cb-8803e6c1a8f4
+    resourceVersion: "29191"
+    uid: b0ab82ac-e8bb-4e61-8725-7e3969a91bca
+  results:
+  - message: success
+    policy: verify-image-signatures
+    properties:
+      process: admission review
+    result: pass
+    rule: verify-image-signatures
+    scored: true
+    severity: high
+    source: KyvernoImageValidatingPolicy
+    timestamp:
+      nanos: 484819868
+      seconds: 1795675899
+  scope:
+    apiVersion: v1
+    kind: Pod
+    name: falco-lrsqk
+    namespace: falco
+    uid: c6a15da0-0885-425f-b2cb-8803e6c1a8f4
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: PolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:40Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 9e6b9cd2-e6df-45d6-be9f-91907523bc1a
+    namespace: kube-public
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: RoleBinding
+      name: system:controller:bootstrap-signer
+      uid: 9e6b9cd2-e6df-45d6-be9f-91907523bc1a
+    resourceVersion: "25572"
+    uid: 2a25c606-3f80-4213-891c-b6909ef088c8
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 127667888
+      seconds: 1795675290
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    name: system:controller:bootstrap-signer
+    namespace: kube-public
+    uid: 9e6b9cd2-e6df-45d6-be9f-91907523bc1a
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: PolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:41Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 30527de0-0291-4709-bbd1-0b99eb914409
+    namespace: kube-system
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: RoleBinding
+      name: eks:az-poller
+      uid: 30527de0-0291-4709-bbd1-0b99eb914409
+    resourceVersion: "25607"
+    uid: 0362dd48-431c-46fc-b370-8dfd0ea7c425
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 253616533
+      seconds: 1795675291
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    name: eks:az-poller
+    namespace: kube-system
+    uid: 30527de0-0291-4709-bbd1-0b99eb914409
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: PolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:40Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 3c460953-6907-4337-8824-90b385c2dd49
+    namespace: kube-system
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: RoleBinding
+      name: system::leader-locking-kube-scheduler
+      uid: 3c460953-6907-4337-8824-90b385c2dd49
+    resourceVersion: "25590"
+    uid: 4d1612cf-49fb-4efe-a5ab-165b27f75307
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 607371105
+      seconds: 1795675290
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    name: system::leader-locking-kube-scheduler
+    namespace: kube-system
+    uid: 3c460953-6907-4337-8824-90b385c2dd49
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: PolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:40Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 44d82570-b219-450a-8533-e010eaa30f87
+    namespace: kube-system
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: RoleBinding
+      name: eks-vpc-resource-controller-rolebinding
+      uid: 44d82570-b219-450a-8533-e010eaa30f87
+    resourceVersion: "25575"
+    uid: 95140614-42c1-4602-a696-8574b1751d98
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 152299048
+      seconds: 1795675290
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    name: eks-vpc-resource-controller-rolebinding
+    namespace: kube-system
+    uid: 44d82570-b219-450a-8533-e010eaa30f87
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: PolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:41Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 483024e8-88ba-4cae-9d1b-a2ece02a2105
+    namespace: kube-system
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: RoleBinding
+      name: eks:authenticator
+      uid: 483024e8-88ba-4cae-9d1b-a2ece02a2105
+    resourceVersion: "25599"
+    uid: b5bd5d79-e516-42ca-83ad-3403e14cd70c
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 921989708
+      seconds: 1795675290
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    name: eks:authenticator
+    namespace: kube-system
+    uid: 483024e8-88ba-4cae-9d1b-a2ece02a2105
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: PolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:41Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 547c6666-3ea7-4cb5-8ed6-857a845458f1
+    namespace: kube-system
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: RoleBinding
+      name: eks:node-manager
+      uid: 547c6666-3ea7-4cb5-8ed6-857a845458f1
+    resourceVersion: "25611"
+    uid: 23380445-a291-4b77-af01-d9d0478eefe6
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 472829805
+      seconds: 1795675291
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    name: eks:node-manager
+    namespace: kube-system
+    uid: 547c6666-3ea7-4cb5-8ed6-857a845458f1
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: PolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:41Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 59ff307f-d411-4a64-9726-18b6c6099b54
+    namespace: kube-system
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: RoleBinding
+      name: eks:fargate-manager
+      uid: 59ff307f-d411-4a64-9726-18b6c6099b54
+    resourceVersion: "25600"
+    uid: f0ed40c5-4356-4cd4-9557-5d65a6c184e3
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 50446139
+      seconds: 1795675291
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    name: eks:fargate-manager
+    namespace: kube-system
+    uid: 59ff307f-d411-4a64-9726-18b6c6099b54
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: PolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:40Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 5a146ebd-adce-4e55-b537-ecf8af35339b
+    namespace: kube-system
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: RoleBinding
+      name: system::extension-apiserver-authentication-reader
+      uid: 5a146ebd-adce-4e55-b537-ecf8af35339b
+    resourceVersion: "25578"
+    uid: 8f64a0d3-aab4-4ba2-a92a-6e8c08233dfd
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 289574866
+      seconds: 1795675290
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    name: system::extension-apiserver-authentication-reader
+    namespace: kube-system
+    uid: 5a146ebd-adce-4e55-b537-ecf8af35339b
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: PolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:40Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 663b7af2-972b-4358-b091-15a9a95b8a19
+    namespace: kube-system
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: RoleBinding
+      name: system:controller:cloud-provider
+      uid: 663b7af2-972b-4358-b091-15a9a95b8a19
+    resourceVersion: "25569"
+    uid: 1ae76202-ddad-4ee9-8bfc-def72b6d3361
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 1588989
+      seconds: 1795675290
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    name: system:controller:cloud-provider
+    namespace: kube-system
+    uid: 663b7af2-972b-4358-b091-15a9a95b8a19
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: PolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:41Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 7b0c7d30-e8e9-409c-9b0d-a75a553f4477
+    namespace: kube-system
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: RoleBinding
+      name: eks:service-operations
+      uid: 7b0c7d30-e8e9-409c-9b0d-a75a553f4477
+    resourceVersion: "25610"
+    uid: 90759949-ba3b-45cd-ae7d-bf86483f4d41
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 613464561
+      seconds: 1795675291
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    name: eks:service-operations
+    namespace: kube-system
+    uid: 7b0c7d30-e8e9-409c-9b0d-a75a553f4477
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: PolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:41Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 92896763-c1bb-4085-a68f-a1d018d73669
+    namespace: kube-system
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: RoleBinding
+      name: eks:network-policy-controller
+      uid: 92896763-c1bb-4085-a68f-a1d018d73669
+    resourceVersion: "25604"
+    uid: 667541c9-046f-4833-b4d4-79ab26ffc233
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 91518032
+      seconds: 1795675291
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    name: eks:network-policy-controller
+    namespace: kube-system
+    uid: 92896763-c1bb-4085-a68f-a1d018d73669
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: PolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:41Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: a58b8e91-ccd5-4d14-9aaf-905d828ff7b0
+    namespace: kube-system
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: RoleBinding
+      name: eks:addon-manager
+      uid: a58b8e91-ccd5-4d14-9aaf-905d828ff7b0
+    resourceVersion: "25606"
+    uid: 2f0778f3-8ad3-4db6-a850-8a3bd93fd720
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 248012828
+      seconds: 1795675291
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    name: eks:addon-manager
+    namespace: kube-system
+    uid: a58b8e91-ccd5-4d14-9aaf-905d828ff7b0
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: PolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:41Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: c09a4bd5-f31e-4766-8223-a86af2330414
+    namespace: kube-system
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: RoleBinding
+      name: system::leader-locking-kube-controller-manager
+      uid: c09a4bd5-f31e-4766-8223-a86af2330414
+    resourceVersion: "25616"
+    uid: 788d05d5-2038-4c33-a661-40e20ea05b91
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 657227533
+      seconds: 1795675291
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    name: system::leader-locking-kube-controller-manager
+    namespace: kube-system
+    uid: c09a4bd5-f31e-4766-8223-a86af2330414
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: PolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:40Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: c6441a2f-3895-49f6-b29e-881f3c59a9df
+    namespace: kube-system
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: RoleBinding
+      name: system:controller:token-cleaner
+      uid: c6441a2f-3895-49f6-b29e-881f3c59a9df
+    resourceVersion: "25581"
+    uid: 05638176-7324-4156-b80f-2e0eb241cbe9
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 309326695
+      seconds: 1795675290
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    name: system:controller:token-cleaner
+    namespace: kube-system
+    uid: c6441a2f-3895-49f6-b29e-881f3c59a9df
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: PolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:40Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: dfc702b7-5276-44d9-bbc0-c683a507784c
+    namespace: kube-system
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: RoleBinding
+      name: system:controller:bootstrap-signer
+      uid: dfc702b7-5276-44d9-bbc0-c683a507784c
+    resourceVersion: "25567"
+    uid: a5efb984-e801-486b-b356-50024218b15c
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 984017502
+      seconds: 1795675289
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    name: system:controller:bootstrap-signer
+    namespace: kube-system
+    uid: dfc702b7-5276-44d9-bbc0-c683a507784c
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: PolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:40Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: f96c9f58-0ad9-4932-8a09-e0978786536e
+    namespace: kube-system
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: RoleBinding
+      name: eks:coredns-autoscaler
+      uid: f96c9f58-0ad9-4932-8a09-e0978786536e
+    resourceVersion: "25587"
+    uid: 7c7792fc-987c-4e46-8d72-f7bad2bce5f3
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 505656116
+      seconds: 1795675290
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    name: eks:coredns-autoscaler
+    namespace: kube-system
+    uid: f96c9f58-0ad9-4932-8a09-e0978786536e
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: PolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:40Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 08d8bb48-22c7-4dd3-af66-1eae0328b309
+    namespace: kyverno
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: RoleBinding
+      name: kyverno:admission-controller
+      uid: 08d8bb48-22c7-4dd3-af66-1eae0328b309
+    resourceVersion: "25592"
+    uid: 199abfcb-f307-4a5f-acd7-00694f5a98b1
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 612822306
+      seconds: 1795675290
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    name: kyverno:admission-controller
+    namespace: kyverno
+    uid: 08d8bb48-22c7-4dd3-af66-1eae0328b309
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: PolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:40Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: a05cd8b5-a4ab-4637-90ad-c5802dcfc00c
+    namespace: kyverno
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: RoleBinding
+      name: kyverno:cleanup-controller
+      uid: a05cd8b5-a4ab-4637-90ad-c5802dcfc00c
+    resourceVersion: "25586"
+    uid: 49b94086-3855-47ce-af40-7bb2a5622b34
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 488308903
+      seconds: 1795675290
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    name: kyverno:cleanup-controller
+    namespace: kyverno
+    uid: a05cd8b5-a4ab-4637-90ad-c5802dcfc00c
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: PolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:40Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: b687397a-4377-4294-80eb-5e162716c915
+    namespace: kyverno
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: RoleBinding
+      name: kyverno:background-controller
+      uid: b687397a-4377-4294-80eb-5e162716c915
+    resourceVersion: "25594"
+    uid: 546bdd66-e326-4e07-932a-e60594991b14
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 788261616
+      seconds: 1795675290
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    name: kyverno:background-controller
+    namespace: kyverno
+    uid: b687397a-4377-4294-80eb-5e162716c915
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: PolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:40Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: de75500f-bff9-45a0-b118-9be3553fc683
+    namespace: kyverno
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: RoleBinding
+      name: kyverno:reports-controller
+      uid: de75500f-bff9-45a0-b118-9be3553fc683
+    resourceVersion: "25595"
+    uid: d18caa5b-bba6-4410-9ae9-594b4bd20984
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 777268852
+      seconds: 1795675290
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    name: kyverno:reports-controller
+    namespace: kyverno
+    uid: de75500f-bff9-45a0-b118-9be3553fc683
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:33Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 06bcc193-89dc-4fd0-8376-ac716d1dfbfb
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: eks:addon-manager
+      uid: 06bcc193-89dc-4fd0-8376-ac716d1dfbfb
+    resourceVersion: "31680"
+    uid: 8916a84e-c992-4077-84f3-45418bf698a1
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 956492481
+      seconds: 1795676299
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: eks:addon-manager
+    uid: 06bcc193-89dc-4fd0-8376-ac716d1dfbfb
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:38Z"
+    generation: 2
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 0857aa06-618a-4705-bea2-af2c25266dca
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: eks:addon-cluster-admin
+      uid: 0857aa06-618a-4705-bea2-af2c25266dca
+    resourceVersion: "31694"
+    uid: baf021b6-03d2-4f61-a4e9-1a03578e622c
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 469715864
+      seconds: 1795676298
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: eks:addon-cluster-admin
+    uid: 0857aa06-618a-4705-bea2-af2c25266dca
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:39Z"
+    generation: 2
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 08a95ab7-d694-4187-8839-00ac11b09c55
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:controller:node-controller
+      uid: 08a95ab7-d694-4187-8839-00ac11b09c55
+    resourceVersion: "31643"
+    uid: 1229a28a-c5c9-4bbe-81c0-cc468625364a
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 774137495
+      seconds: 1795676298
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:controller:node-controller
+    uid: 08a95ab7-d694-4187-8839-00ac11b09c55
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:37Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 0d1ebdc1-9a3b-4e78-96a5-ceeb8fb02a32
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:controller:attachdetach-controller
+      uid: 0d1ebdc1-9a3b-4e78-96a5-ceeb8fb02a32
+    resourceVersion: "31695"
+    uid: fde1b156-0efc-4e11-8ba5-8daf0147128d
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 203703095
+      seconds: 1795676305
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:controller:attachdetach-controller
+    uid: 0d1ebdc1-9a3b-4e78-96a5-ceeb8fb02a32
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:38Z"
+    generation: 2
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 1415748d-fa30-4097-8125-0228ba39d7df
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:node-proxier
+      uid: 1415748d-fa30-4097-8125-0228ba39d7df
+    resourceVersion: "25780"
+    uid: cb8a7d6c-e616-4c33-8a31-daaac897e0e0
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 763036085
+      seconds: 1795675298
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:node-proxier
+    uid: 1415748d-fa30-4097-8125-0228ba39d7df
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:34Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 17276bb8-1bc6-43d7-a45e-35a5fc25cef0
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:controller:endpoint-controller
+      uid: 17276bb8-1bc6-43d7-a45e-35a5fc25cef0
+    resourceVersion: "31591"
+    uid: c5037fde-3070-4fb3-8f1c-192fbf0467f1
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 684244838
+      seconds: 1795676300
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:controller:endpoint-controller
+    uid: 17276bb8-1bc6-43d7-a45e-35a5fc25cef0
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:37Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 18a99861-b2a8-4a63-abd4-e6a773e8d6f7
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: kyverno:cleanup-controller
+      uid: 18a99861-b2a8-4a63-abd4-e6a773e8d6f7
+    resourceVersion: "31627"
+    uid: c0038053-2fa6-4ff4-84e3-a8c99ac283cc
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 499893072
+      seconds: 1795676304
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: kyverno:cleanup-controller
+    uid: 18a99861-b2a8-4a63-abd4-e6a773e8d6f7
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:34Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 1fa75c0a-bc01-4f16-ad90-a0f8dc290166
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: eks:cluster-event-watcher
+      uid: 1fa75c0a-bc01-4f16-ad90-a0f8dc290166
+    resourceVersion: "31603"
+    uid: fc59f7bb-482e-4002-b4ae-745737a4b701
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 644868455
+      seconds: 1795676301
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: eks:cluster-event-watcher
+    uid: 1fa75c0a-bc01-4f16-ad90-a0f8dc290166
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:34Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 222791d5-bf8c-4097-bbe6-0c7cfc7c7b56
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:controller:volumeattributesclass-protection-controller
+      uid: 222791d5-bf8c-4097-bbe6-0c7cfc7c7b56
+    resourceVersion: "31649"
+    uid: 94904f6d-da4e-46a2-aa38-99a2ace42e05
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 471805477
+      seconds: 1795676300
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:controller:volumeattributesclass-protection-controller
+    uid: 222791d5-bf8c-4097-bbe6-0c7cfc7c7b56
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:35Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 243a2cdf-9d3a-4e15-adf3-e348c02e13b0
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:controller:endpointslice-controller
+      uid: 243a2cdf-9d3a-4e15-adf3-e348c02e13b0
+    resourceVersion: "31553"
+    uid: de23cf2c-2f53-4309-a7b4-3aaad159a4f7
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 712622160
+      seconds: 1795676301
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:controller:endpointslice-controller
+    uid: 243a2cdf-9d3a-4e15-adf3-e348c02e13b0
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:37Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 27cb784d-eee1-4984-9f8b-8e64b362b8eb
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:controller:namespace-controller
+      uid: 27cb784d-eee1-4984-9f8b-8e64b362b8eb
+    resourceVersion: "31698"
+    uid: 2fd9f3be-03c3-4a05-b956-aa972134f807
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 675940432
+      seconds: 1795676304
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:controller:namespace-controller
+    uid: 27cb784d-eee1-4984-9f8b-8e64b362b8eb
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:39Z"
+    generation: 2
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 2b2bec88-85cb-4c99-acb8-2803b8d816db
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:controller:resourcequota-controller
+      uid: 2b2bec88-85cb-4c99-acb8-2803b8d816db
+    resourceVersion: "31696"
+    uid: 361ca811-6059-4587-b5e0-5a956cbec35f
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 643315263
+      seconds: 1795676298
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:controller:resourcequota-controller
+    uid: 2b2bec88-85cb-4c99-acb8-2803b8d816db
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:39Z"
+    generation: 2
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 2c24f0bb-35f6-48de-b6e6-c438ece55539
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:controller:disruption-controller
+      uid: 2c24f0bb-35f6-48de-b6e6-c438ece55539
+    resourceVersion: "31648"
+    uid: c66efad0-e9c2-4268-8e56-5e67d50139f6
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 189614320
+      seconds: 1795676299
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:controller:disruption-controller
+    uid: 2c24f0bb-35f6-48de-b6e6-c438ece55539
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:35Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 35e9f0c8-cece-4d93-8d2e-1c312e9614f2
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:public-info-viewer
+      uid: 35e9f0c8-cece-4d93-8d2e-1c312e9614f2
+    resourceVersion: "31579"
+    uid: a1cd216a-61fd-4115-854b-7cdf471e9589
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 18281993
+      seconds: 1795676302
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:public-info-viewer
+    uid: 35e9f0c8-cece-4d93-8d2e-1c312e9614f2
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:34Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 36adfe82-e99d-4134-b883-06c1897be7ce
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: eks:nodewatcher
+      uid: 36adfe82-e99d-4134-b883-06c1897be7ce
+    resourceVersion: "31578"
+    uid: 88e52ef5-d76b-48b4-8726-3ad679b42d25
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 973316346
+      seconds: 1795676300
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: eks:nodewatcher
+    uid: 36adfe82-e99d-4134-b883-06c1897be7ce
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T07:01:11Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 36ee3ae1-6729-4447-947e-1b530d1eafb0
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: cipherguard-kyverno-rbac-reports-access
+      uid: 36ee3ae1-6729-4447-947e-1b530d1eafb0
+    resourceVersion: "32733"
+    uid: 250d6fd0-8d6f-450f-95e8-867e284f1b21
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 665107010
+      seconds: 1795676461
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: cipherguard-kyverno-rbac-reports-access
+    uid: 36ee3ae1-6729-4447-947e-1b530d1eafb0
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:33Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 39e25d2f-2dee-4f18-88bb-5e0433ba14d1
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:controller:root-ca-cert-publisher
+      uid: 39e25d2f-2dee-4f18-88bb-5e0433ba14d1
+    resourceVersion: "31559"
+    uid: 24006cd8-067e-4853-acb6-ebbfea78b13f
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 762609091
+      seconds: 1795676299
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:controller:root-ca-cert-publisher
+    uid: 39e25d2f-2dee-4f18-88bb-5e0433ba14d1
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:38Z"
+    generation: 2
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 39fbe85d-07b7-432d-b3d4-a64cb65c5205
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: kyverno:background-controller
+      uid: 39fbe85d-07b7-432d-b3d4-a64cb65c5205
+    resourceVersion: "31665"
+    uid: 3900ac99-1f55-41a5-b593-b07f768c1c54
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 921408102
+      seconds: 1795676297
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: kyverno:background-controller
+    uid: 39fbe85d-07b7-432d-b3d4-a64cb65c5205
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:36Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 3bac7b48-a9b7-4733-b9c6-1460ed49a333
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: eks:network-webhooks
+      uid: 3bac7b48-a9b7-4733-b9c6-1460ed49a333
+    resourceVersion: "31624"
+    uid: 1da7cf11-630b-40f8-abaf-973367597d39
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 752860692
+      seconds: 1795676303
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: eks:network-webhooks
+    uid: 3bac7b48-a9b7-4733-b9c6-1460ed49a333
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:37Z"
+    generation: 2
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 3f5167ec-bcde-4448-a65f-579864c38e9b
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:controller:service-controller
+      uid: 3f5167ec-bcde-4448-a65f-579864c38e9b
+    resourceVersion: "25767"
+    uid: 2148664a-fa0d-43f2-8e6c-ee43716509f2
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 367046852
+      seconds: 1795675298
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:controller:service-controller
+    uid: 3f5167ec-bcde-4448-a65f-579864c38e9b
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:35Z"
+    generation: 5
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 404daa69-9601-4bf1-bd4d-db58f1ebbbd5
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: kyverno:reports-controller:view
+      uid: 404daa69-9601-4bf1-bd4d-db58f1ebbbd5
+    resourceVersion: "31639"
+    uid: d17a1c2f-d70c-48ad-9993-68bc6019182b
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 844348393
+      seconds: 1795676302
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: kyverno:reports-controller:view
+    uid: 404daa69-9601-4bf1-bd4d-db58f1ebbbd5
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:35Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 434d488c-fda6-4777-8f79-132abe64aba4
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: eks:kms-storage-migrator
+      uid: 434d488c-fda6-4777-8f79-132abe64aba4
+    resourceVersion: "31672"
+    uid: b9b20539-aaac-4ff9-bdac-8bd501022fdc
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 382184404
+      seconds: 1795676301
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: eks:kms-storage-migrator
+    uid: 434d488c-fda6-4777-8f79-132abe64aba4
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:37Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 5102f1b6-398d-4efd-9a24-eae6afaf3a5b
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:kube-dns
+      uid: 5102f1b6-398d-4efd-9a24-eae6afaf3a5b
+    resourceVersion: "31628"
+    uid: 1baf12df-bb7c-4de9-ba06-4b6d3b3c1518
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 148621144
+      seconds: 1795676304
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:kube-dns
+    uid: 5102f1b6-398d-4efd-9a24-eae6afaf3a5b
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:37Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 581b0684-f912-4a53-b637-70057094b931
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:controller:expand-controller
+      uid: 581b0684-f912-4a53-b637-70057094b931
+    resourceVersion: "31623"
+    uid: a02a1235-aa7e-46da-a3d7-04492767ac79
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 515184102
+      seconds: 1795676304
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:controller:expand-controller
+    uid: 581b0684-f912-4a53-b637-70057094b931
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:34Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 597cc78e-3498-460c-b3e9-2739405a3157
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: eks:cloud-provider-extraction-migration
+      uid: 597cc78e-3498-460c-b3e9-2739405a3157
+    resourceVersion: "31703"
+    uid: 7c430c61-a59a-4a5a-bb4b-5d9a177215e8
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 511591272
+      seconds: 1795676300
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: eks:cloud-provider-extraction-migration
+    uid: 597cc78e-3498-460c-b3e9-2739405a3157
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:38Z"
+    generation: 2
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 5e4ea85b-2833-4d64-8cd7-632589e78be5
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:controller:deployment-controller
+      uid: 5e4ea85b-2833-4d64-8cd7-632589e78be5
+    resourceVersion: "31664"
+    uid: c5c48aa0-261d-4507-94e3-67cbd24a53e4
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 34747012
+      seconds: 1795676298
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:controller:deployment-controller
+    uid: 5e4ea85b-2833-4d64-8cd7-632589e78be5
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:36Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 5ef19797-879e-4a03-b86e-d6d2aa3ae975
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: kyverno:reports-controller
+      uid: 5ef19797-879e-4a03-b86e-d6d2aa3ae975
+    resourceVersion: "31688"
+    uid: 54c01604-2b5c-4580-8d3f-7ef4b49ddfdc
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 942349489
+      seconds: 1795676303
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: kyverno:reports-controller
+    uid: 5ef19797-879e-4a03-b86e-d6d2aa3ae975
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:38Z"
+    generation: 2
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 5fe9fc75-3643-4ea3-b2fd-13746bb7549e
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:controller:ttl-controller
+      uid: 5fe9fc75-3643-4ea3-b2fd-13746bb7549e
+    resourceVersion: "25782"
+    uid: 41cd8921-c773-4923-b850-ab4cc6bd48ed
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 863949263
+      seconds: 1795675298
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:controller:ttl-controller
+    uid: 5fe9fc75-3643-4ea3-b2fd-13746bb7549e
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:38Z"
+    generation: 2
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 637a1fe6-e5e4-4ab5-8c87-4613ff72096e
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:controller:daemon-set-controller
+      uid: 637a1fe6-e5e4-4ab5-8c87-4613ff72096e
+    resourceVersion: "25778"
+    uid: 15e42965-4a99-4fcb-be76-ce468e016acc
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 690078204
+      seconds: 1795675298
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:controller:daemon-set-controller
+    uid: 637a1fe6-e5e4-4ab5-8c87-4613ff72096e
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:36Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 696a94e2-f991-4410-8240-0ad2ad783b3a
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:controller:job-controller
+      uid: 696a94e2-f991-4410-8240-0ad2ad783b3a
+    resourceVersion: "31556"
+    uid: 90f1fca5-81ad-41f8-a531-82a85de31ce7
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 115243042
+      seconds: 1795676303
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:controller:job-controller
+    uid: 696a94e2-f991-4410-8240-0ad2ad783b3a
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:39Z"
+    generation: 2
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 6afb625d-04d5-47c3-9bb6-9f82dd236233
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:controller:persistent-volume-binder
+      uid: 6afb625d-04d5-47c3-9bb6-9f82dd236233
+    resourceVersion: "31598"
+    uid: 727b1903-02eb-46f3-9769-6c5e3c04e079
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 439962517
+      seconds: 1795676299
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:controller:persistent-volume-binder
+    uid: 6afb625d-04d5-47c3-9bb6-9f82dd236233
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:35Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 6cb94a6e-5782-4701-8b12-24b0fffae681
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: eks:coredns-autoscaler
+      uid: 6cb94a6e-5782-4701-8b12-24b0fffae681
+    resourceVersion: "31669"
+    uid: fcc1c0c4-a537-4b9c-9887-126b8d21b90f
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 424720803
+      seconds: 1795676302
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: eks:coredns-autoscaler
+    uid: 6cb94a6e-5782-4701-8b12-24b0fffae681
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:37Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 6d88be0b-66f5-4ec5-817b-897c9dd0a599
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:service-account-issuer-discovery
+      uid: 6d88be0b-66f5-4ec5-817b-897c9dd0a599
+    resourceVersion: "31609"
+    uid: f66b0b1c-ba30-4ec0-b71b-b6f38384e2d2
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 886138542
+      seconds: 1795676304
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:service-account-issuer-discovery
+    uid: 6d88be0b-66f5-4ec5-817b-897c9dd0a599
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:37Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 70b61630-98f6-4159-80cd-6931a6cb6190
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:controller:service-account-controller
+      uid: 70b61630-98f6-4159-80cd-6931a6cb6190
+    resourceVersion: "31570"
+    uid: bc119581-e97b-467f-a4cb-d5452e8af6a6
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 942815485
+      seconds: 1795676304
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:controller:service-account-controller
+    uid: 70b61630-98f6-4159-80cd-6931a6cb6190
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:35Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 71584f30-f18d-4b5a-9615-8b5e79c691a1
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:controller:service-cidrs-controller
+      uid: 71584f30-f18d-4b5a-9615-8b5e79c691a1
+    resourceVersion: "31637"
+    uid: 6c09a24a-9d2a-4117-b110-01b0e90b9b01
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 721172977
+      seconds: 1795676301
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:controller:service-cidrs-controller
+    uid: 71584f30-f18d-4b5a-9615-8b5e79c691a1
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:35Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 717f3b39-5f90-4326-ae12-45c5ccc1e45d
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:basic-user
+      uid: 717f3b39-5f90-4326-ae12-45c5ccc1e45d
+    resourceVersion: "31658"
+    uid: e8545d05-8983-45b1-bf98-6c827b458d3a
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 867290007
+      seconds: 1795676302
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:basic-user
+    uid: 717f3b39-5f90-4326-ae12-45c5ccc1e45d
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:36Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 754d5983-21a3-4301-9adb-2af4237baaae
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:controller:ttl-after-finished-controller
+      uid: 754d5983-21a3-4301-9adb-2af4237baaae
+    resourceVersion: "31655"
+    uid: 5e054d4f-392b-4d2f-8eb5-ff707daca99e
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 434941449
+      seconds: 1795676303
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:controller:ttl-after-finished-controller
+    uid: 754d5983-21a3-4301-9adb-2af4237baaae
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:35Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 81e21b52-1845-4fcf-ad1d-0dc2bdc5e5c9
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:discovery
+      uid: 81e21b52-1845-4fcf-ad1d-0dc2bdc5e5c9
+    resourceVersion: "31563"
+    uid: 7427b98e-56b7-45d9-a901-ce17d4b72760
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 901640730
+      seconds: 1795676301
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:discovery
+    uid: 81e21b52-1845-4fcf-ad1d-0dc2bdc5e5c9
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:38Z"
+    generation: 2
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 8505f2e3-351e-48c1-a17a-367c7be0cdc4
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:controller:statefulset-controller
+      uid: 8505f2e3-351e-48c1-a17a-367c7be0cdc4
+    resourceVersion: "25770"
+    uid: ffa486c2-034f-4fc0-a096-8a2439e0b6b0
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 553642001
+      seconds: 1795675298
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:controller:statefulset-controller
+    uid: 8505f2e3-351e-48c1-a17a-367c7be0cdc4
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:38Z"
+    generation: 2
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 865426e7-c70c-44a0-8870-6edda879e13e
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: eks:pod-identity-mutating-webhook
+      uid: 865426e7-c70c-44a0-8870-6edda879e13e
+    resourceVersion: "25774"
+    uid: 22842470-aaca-410f-8bea-30267ed519cb
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 627228664
+      seconds: 1795675298
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: eks:pod-identity-mutating-webhook
+    uid: 865426e7-c70c-44a0-8870-6edda879e13e
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:35Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 92280909-ec7e-43c3-b676-bcc1b40d6922
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: eks:fargate-scheduler
+      uid: 92280909-ec7e-43c3-b676-bcc1b40d6922
+    resourceVersion: "31619"
+    uid: fc4e605b-cefc-4146-9df7-8d97830c3254
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 699524743
+      seconds: 1795676302
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: eks:fargate-scheduler
+    uid: 92280909-ec7e-43c3-b676-bcc1b40d6922
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:34Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 94e03a1f-87be-4262-9d6d-661169370abb
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:controller:selinux-warning-controller
+      uid: 94e03a1f-87be-4262-9d6d-661169370abb
+    resourceVersion: "31606"
+    uid: 800f74e5-5c9c-4679-bef4-1870486dafd6
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 819553704
+      seconds: 1795676300
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:controller:selinux-warning-controller
+    uid: 94e03a1f-87be-4262-9d6d-661169370abb
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:35Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 9afcf2aa-8f68-4ae5-a08d-0b3f6de4b860
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: eks:kube-proxy
+      uid: 9afcf2aa-8f68-4ae5-a08d-0b3f6de4b860
+    resourceVersion: "31687"
+    uid: de6f5db5-40d2-4dcb-aaa1-2f1dddd8c218
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 291095191
+      seconds: 1795676302
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: eks:kube-proxy
+    uid: 9afcf2aa-8f68-4ae5-a08d-0b3f6de4b860
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:36Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 9ca7dd02-97a4-487b-aebc-fff18127ec53
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:node
+      uid: 9ca7dd02-97a4-487b-aebc-fff18127ec53
+    resourceVersion: "31602"
+    uid: 46f8885e-0a7c-488c-9713-1a603e8a85a1
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 531407352
+      seconds: 1795676303
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:node
+    uid: 9ca7dd02-97a4-487b-aebc-fff18127ec53
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:38Z"
+    generation: 2
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: 9e10d48e-596e-40e7-b2f6-7359e98463f5
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:kube-scheduler
+      uid: 9e10d48e-596e-40e7-b2f6-7359e98463f5
+    resourceVersion: "25775"
+    uid: 9f70d1c4-1984-4f9b-8f90-e3169750b941
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 533551425
+      seconds: 1795675298
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:kube-scheduler
+    uid: 9e10d48e-596e-40e7-b2f6-7359e98463f5
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:36Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: a579dc2b-76d2-4168-95f2-d4333139974a
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: eks:network-policy-controller
+      uid: a579dc2b-76d2-4168-95f2-d4333139974a
+    resourceVersion: "31656"
+    uid: f8018e13-a1da-42b1-b706-9e597f08773d
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 477495359
+      seconds: 1795676303
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: eks:network-policy-controller
+    uid: a579dc2b-76d2-4168-95f2-d4333139974a
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:33Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: a62b73a5-637c-4918-8c00-6110c354bf3a
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:controller:clusterrole-aggregation-controller
+      uid: a62b73a5-637c-4918-8c00-6110c354bf3a
+    resourceVersion: "31585"
+    uid: 6d645690-b9bc-4262-a4ab-bc4343aa6adf
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 293701785
+      seconds: 1795676300
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:controller:clusterrole-aggregation-controller
+    uid: a62b73a5-637c-4918-8c00-6110c354bf3a
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:37Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: a6d6dc47-3cce-4252-bd6d-f32fd6c4a6a7
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: eks:tagging-controller
+      uid: a6d6dc47-3cce-4252-bd6d-f32fd6c4a6a7
+    resourceVersion: "31697"
+    uid: 8dd9120f-7059-4c91-84cb-e83a925bf1fb
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 470673061
+      seconds: 1795676304
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: eks:tagging-controller
+    uid: a6d6dc47-3cce-4252-bd6d-f32fd6c4a6a7
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:39Z"
+    generation: 2
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: ab28fdf9-0166-4ebc-a247-0eaa0835f71e
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: vpc-resource-controller-rolebinding
+      uid: ab28fdf9-0166-4ebc-a247-0eaa0835f71e
+    resourceVersion: "31630"
+    uid: fd1bc445-d7cc-4ab9-b5cd-8ef18cf5cee1
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 253354384
+      seconds: 1795676299
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: vpc-resource-controller-rolebinding
+    uid: ab28fdf9-0166-4ebc-a247-0eaa0835f71e
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:40Z"
+    generation: 2
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: b20a9f59-0933-46f4-b5da-64fd064dec27
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:controller:pv-protection-controller
+      uid: b20a9f59-0933-46f4-b5da-64fd064dec27
+    resourceVersion: "31558"
+    uid: 0cfb206d-73bf-414c-b88c-87e8185a6c7a
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 612223340
+      seconds: 1795676299
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:controller:pv-protection-controller
+    uid: b20a9f59-0933-46f4-b5da-64fd064dec27
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:39Z"
+    generation: 2
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: b92bb898-8f21-4b9d-b9ee-353dd99751f2
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: eks:kube-proxy-windows
+      uid: b92bb898-8f21-4b9d-b9ee-353dd99751f2
+    resourceVersion: "31704"
+    uid: 0666792a-73ef-47ce-8c6a-70ec0f46a734
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 560342584
+      seconds: 1795676298
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: eks:kube-proxy-windows
+    uid: b92bb898-8f21-4b9d-b9ee-353dd99751f2
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:33Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: b9ab6b42-04ae-4ae3-858a-2e8fee7075f8
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:coredns
+      uid: b9ab6b42-04ae-4ae3-858a-2e8fee7075f8
+    resourceVersion: "31583"
+    uid: ae634122-83be-4008-86ec-370e0a26285d
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 805074584
+      seconds: 1795676299
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:coredns
+    uid: b9ab6b42-04ae-4ae3-858a-2e8fee7075f8
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:35Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: bb59e81d-8101-4d4b-bf62-493cf2252799
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:controller:cronjob-controller
+      uid: bb59e81d-8101-4d4b-bf62-493cf2252799
+    resourceVersion: "31638"
+    uid: f789cb2d-8aca-486c-9a3c-f55f8d19793b
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 482939939
+      seconds: 1795676302
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:controller:cronjob-controller
+    uid: bb59e81d-8101-4d4b-bf62-493cf2252799
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:36Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: be91363e-38af-43dd-a69b-464565256194
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: kyverno:admission-controller
+      uid: be91363e-38af-43dd-a69b-464565256194
+    resourceVersion: "31596"
+    uid: 3c06c9ae-7412-4851-943b-81e1f555123f
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 763661629
+      seconds: 1795676303
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: kyverno:admission-controller
+    uid: be91363e-38af-43dd-a69b-464565256194
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:34Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: c15ad4ba-5d41-47d6-be89-3b1fb809591d
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:controller:replication-controller
+      uid: c15ad4ba-5d41-47d6-be89-3b1fb809591d
+    resourceVersion: "31681"
+    uid: 43faca3c-ce1e-4f73-812a-a80330b28764
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 782845485
+      seconds: 1795676300
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:controller:replication-controller
+    uid: c15ad4ba-5d41-47d6-be89-3b1fb809591d
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:34Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: c230c1c2-d1e2-4b54-a946-35f0d54890f2
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: eks:az-poller
+      uid: c230c1c2-d1e2-4b54-a946-35f0d54890f2
+    resourceVersion: "31686"
+    uid: 70296d4b-967f-4847-9c91-c6c091b7455b
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 323554151
+      seconds: 1795676301
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: eks:az-poller
+    uid: c230c1c2-d1e2-4b54-a946-35f0d54890f2
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:33Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: c488ad17-8b67-4487-9e5f-89b155035f74
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:controller:replicaset-controller
+      uid: c488ad17-8b67-4487-9e5f-89b155035f74
+    resourceVersion: "31561"
+    uid: 9fd7f513-0bb7-4922-b5c1-df7bb02c4ecf
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 655464076
+      seconds: 1795676299
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:controller:replicaset-controller
+    uid: c488ad17-8b67-4487-9e5f-89b155035f74
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:36Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: cc4a201a-38c0-4753-a31f-692955885d74
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:kube-controller-manager
+      uid: cc4a201a-38c0-4753-a31f-692955885d74
+    resourceVersion: "31642"
+    uid: 57724c50-4f53-4327-ac4b-f6bf90ba93e4
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 133819162
+      seconds: 1795676304
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:kube-controller-manager
+    uid: cc4a201a-38c0-4753-a31f-692955885d74
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:35Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: ccfbf576-d471-4ee0-a39e-df8a84c3dbba
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:controller:generic-garbage-collector
+      uid: ccfbf576-d471-4ee0-a39e-df8a84c3dbba
+    resourceVersion: "31592"
+    uid: dd41b2d0-d061-4bcd-aacf-c5edeeae6dc6
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 472270853
+      seconds: 1795676302
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:controller:generic-garbage-collector
+    uid: ccfbf576-d471-4ee0-a39e-df8a84c3dbba
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:38Z"
+    generation: 2
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: ce2d7251-acb1-4f42-83ac-9e949935ca22
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:controller:pvc-protection-controller
+      uid: ce2d7251-acb1-4f42-83ac-9e949935ca22
+    resourceVersion: "31574"
+    uid: 5bc1d6b1-de23-4003-99f9-dcc5d358c4f2
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 381991647
+      seconds: 1795676298
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:controller:pvc-protection-controller
+    uid: ce2d7251-acb1-4f42-83ac-9e949935ca22
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:34Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: d29ab4aa-dac8-4b5d-9072-e3085e842754
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: eks:fargate-manager
+      uid: d29ab4aa-dac8-4b5d-9072-e3085e842754
+    resourceVersion: "31657"
+    uid: 2573ee62-cd8b-416f-9ec1-fb9ee7b0bfed
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 969153706
+      seconds: 1795676300
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: eks:fargate-manager
+    uid: d29ab4aa-dac8-4b5d-9072-e3085e842754
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:39Z"
+    generation: 2
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: d3b5e8a9-4cbe-4152-99e2-cb22a0af9fff
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: aws-node
+      uid: d3b5e8a9-4cbe-4152-99e2-cb22a0af9fff
+    resourceVersion: "31677"
+    uid: 39e1836c-24a3-4a23-afd1-391238c87b3a
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 820434820
+      seconds: 1795676298
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: aws-node
+    uid: d3b5e8a9-4cbe-4152-99e2-cb22a0af9fff
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:39Z"
+    generation: 2
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: d3e2cfce-12f1-4a63-9f1d-f8f004e3c347
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: eks:node-manager
+      uid: d3e2cfce-12f1-4a63-9f1d-f8f004e3c347
+    resourceVersion: "31575"
+    uid: 37d9d6a8-9be4-4906-a671-fb3c1165c39f
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 54888925
+      seconds: 1795676299
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: eks:node-manager
+    uid: d3e2cfce-12f1-4a63-9f1d-f8f004e3c347
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:34Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: d4df5fdc-e240-47a5-a871-63a07d92b172
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:controller:certificate-controller
+      uid: d4df5fdc-e240-47a5-a871-63a07d92b172
+    resourceVersion: "31604"
+    uid: f6f6ca7b-4b4f-467d-b26d-4e60afd5bb56
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 755051166
+      seconds: 1795676300
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:controller:certificate-controller
+    uid: d4df5fdc-e240-47a5-a871-63a07d92b172
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:36Z"
+    generation: 5
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: d58bd38b-fd7f-49a8-8723-4c1a1e87fbef
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: kyverno:background-controller:view
+      uid: d58bd38b-fd7f-49a8-8723-4c1a1e87fbef
+    resourceVersion: "31601"
+    uid: 58936472-c741-49f5-addd-150f53d12811
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 111946140
+      seconds: 1795676303
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: kyverno:background-controller:view
+    uid: d58bd38b-fd7f-49a8-8723-4c1a1e87fbef
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:39Z"
+    generation: 2
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: d70ba146-0261-49b2-8fa0-db1d29614c42
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:controller:ephemeral-volume-controller
+      uid: d70ba146-0261-49b2-8fa0-db1d29614c42
+    resourceVersion: "31640"
+    uid: a2457916-cbcc-4201-b6cf-495140c8054d
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 415204950
+      seconds: 1795676299
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:controller:ephemeral-volume-controller
+    uid: d70ba146-0261-49b2-8fa0-db1d29614c42
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:39Z"
+    generation: 2
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: db262f75-23fa-4ac8-a16d-37919e14e656
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: eks:node-bootstrapper
+      uid: db262f75-23fa-4ac8-a16d-37919e14e656
+    resourceVersion: "31678"
+    uid: 931fc9ab-b01a-40c7-b8f9-5b4d6390dda3
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 35265391
+      seconds: 1795676299
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: eks:node-bootstrapper
+    uid: db262f75-23fa-4ac8-a16d-37919e14e656
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:39Z"
+    generation: 2
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: dee168d2-2998-4f37-92b5-756b77158149
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: cluster-admin
+      uid: dee168d2-2998-4f37-92b5-756b77158149
+    resourceVersion: "31647"
+    uid: aea0ea94-ff67-4987-a75f-dc8c52d5b8b6
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 369671450
+      seconds: 1795676298
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: cluster-admin
+    uid: dee168d2-2998-4f37-92b5-756b77158149
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:37Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: e0271a88-ea18-4bca-8beb-b6c14692b25c
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:monitoring
+      uid: e0271a88-ea18-4bca-8beb-b6c14692b25c
+    resourceVersion: "31629"
+    uid: dfead467-24ff-47e6-b023-86967b72c482
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 359678472
+      seconds: 1795676304
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:monitoring
+    uid: e0271a88-ea18-4bca-8beb-b6c14692b25c
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:34Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: e3029efe-b958-4368-b56c-42febc28a9f7
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:controller:route-controller
+      uid: e3029efe-b958-4368-b56c-42febc28a9f7
+    resourceVersion: "31615"
+    uid: 49649dbd-651d-4d56-8f31-9042d098793d
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 470063973
+      seconds: 1795676300
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:controller:route-controller
+    uid: e3029efe-b958-4368-b56c-42febc28a9f7
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:35Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: e38f253e-0a36-4f95-a842-97c2d87e91f4
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:controller:resource-claim-controller
+      uid: e38f253e-0a36-4f95-a842-97c2d87e91f4
+    resourceVersion: "31581"
+    uid: 328a061e-f097-455d-b3bd-d57d4a7f737c
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 238121851
+      seconds: 1795676302
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:controller:resource-claim-controller
+    uid: e38f253e-0a36-4f95-a842-97c2d87e91f4
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:37Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: e3d2d0fc-10b6-48e0-8860-a177fbdebe3f
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:controller:legacy-service-account-token-cleaner
+      uid: e3d2d0fc-10b6-48e0-8860-a177fbdebe3f
+    resourceVersion: "31560"
+    uid: 510ae0a2-8257-4fe2-8559-6618a64648f2
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 813972349
+      seconds: 1795676304
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:controller:legacy-service-account-token-cleaner
+    uid: e3d2d0fc-10b6-48e0-8860-a177fbdebe3f
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:35Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: e4251f67-36d8-4fe5-b196-b99fb45c0130
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:volume-scheduler
+      uid: e4251f67-36d8-4fe5-b196-b99fb45c0130
+    resourceVersion: "31614"
+    uid: 4b07a5b8-4581-49bd-bb3e-ad808358a3f7
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 190668882
+      seconds: 1795676302
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:volume-scheduler
+    uid: e4251f67-36d8-4fe5-b196-b99fb45c0130
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:36Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: e8571644-f5ca-4cbc-b02d-9bdfe8386fbb
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:controller:validatingadmissionpolicy-status-controller
+      uid: e8571644-f5ca-4cbc-b02d-9bdfe8386fbb
+    resourceVersion: "31608"
+    uid: cbb07205-1d75-43d3-9602-5b48ef6b822d
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 332596772
+      seconds: 1795676303
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:controller:validatingadmissionpolicy-status-controller
+    uid: e8571644-f5ca-4cbc-b02d-9bdfe8386fbb
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:37Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: e8bd1633-6cf7-45bd-9c01-2fa23faac7f9
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: eks:kube-proxy-fargate
+      uid: e8bd1633-6cf7-45bd-9c01-2fa23faac7f9
+    resourceVersion: "31577"
+    uid: 5a27ca09-4c5d-406f-9819-2e0a40da5927
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 16518623
+      seconds: 1795676305
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: eks:kube-proxy-fargate
+    uid: e8bd1633-6cf7-45bd-9c01-2fa23faac7f9
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:36Z"
+    generation: 5
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: f9d243ae-bfea-42e7-be76-850931efe919
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: kyverno:admission-controller:view
+      uid: f9d243ae-bfea-42e7-be76-850931efe919
+    resourceVersion: "31673"
+    uid: 793c16a3-5865-4c4e-90b8-e39415aa004e
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 914457097
+      seconds: 1795676302
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: kyverno:admission-controller:view
+    uid: f9d243ae-bfea-42e7-be76-850931efe919
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:34Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: fab4acdd-fe9e-4e43-ae87-6613bf4a8c06
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:controller:pod-garbage-collector
+      uid: fab4acdd-fe9e-4e43-ae87-6613bf4a8c06
+    resourceVersion: "31667"
+    uid: 10af85c8-6832-4771-a965-7392669a8177
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 209394594
+      seconds: 1795676301
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:controller:pod-garbage-collector
+    uid: fab4acdd-fe9e-4e43-ae87-6613bf4a8c06
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:38Z"
+    generation: 2
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: fb4a486d-261c-449b-9e6d-804c53b57f5f
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:controller:horizontal-pod-autoscaler
+      uid: fb4a486d-261c-449b-9e6d-804c53b57f5f
+    resourceVersion: "31562"
+    uid: 044fa915-974e-4c1d-b33e-cab262122d20
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 98718695
+      seconds: 1795676298
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:controller:horizontal-pod-autoscaler
+    uid: fb4a486d-261c-449b-9e6d-804c53b57f5f
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:33Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: feffac81-a1e8-485b-88e3-2367a5a0fdb3
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: eks:service-operations
+      uid: feffac81-a1e8-485b-88e3-2367a5a0fdb3
+    resourceVersion: "31666"
+    uid: b83572ef-4a44-4784-98b0-ed4432576696
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 24420895
+      seconds: 1795676300
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: eks:service-operations
+    uid: feffac81-a1e8-485b-88e3-2367a5a0fdb3
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+- apiVersion: wgpolicyk8s.io/v1alpha2
+  kind: ClusterPolicyReport
+  metadata:
+    creationTimestamp: "2026-11-26T06:41:36Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/managed-by: kyverno
+    name: ffdf4353-d4a1-4c96-9668-3f5a53c25b12
+    ownerReferences:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      name: system:controller:endpointslicemirroring-controller
+      uid: ffdf4353-d4a1-4c96-9668-3f5a53c25b12
+    resourceVersion: "31674"
+    uid: bff13802-c7f8-43a1-89bc-53f3051f82d9
+  results:
+  - message: success
+    policy: deny-cluster-admin-to-serviceaccounts
+    properties:
+      process: background scan
+    result: pass
+    rule: validation
+    scored: true
+    severity: critical
+    source: KyvernoValidatingPolicy
+    timestamp:
+      nanos: 952688927
+      seconds: 1795676303
+  scope:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    name: system:controller:endpointslicemirroring-controller
+    uid: ffdf4353-d4a1-4c96-9668-3f5a53c25b12
+  summary:
+    error: 0
+    fail: 0
+    pass: 1
+    skip: 0
+    warn: 0
+kind: List
+metadata:
+  resourceVersion: ""

@@ -1,0 +1,17 @@
+Starting detect-only attack chain at epoch 1795675552 ...
+Chain done; waiting 80s for audit-log poll + indexing ...
+
+RULE                         LEVEL  LATENCY   TARGET
+----                         -----  -------   ------
+rule 100101                  6      1s        ok (<=60s)
+Step2 API server contact     8      9s        ok (<=60s)
+Step2 token read             10     7s        ok (<=60s)
+ScenD IMDS                   12     5s        ok (<=60s)
+ScenB container escape       12     25s       ok (<=60s)
+ScenG exec from /tmp         10     25s       ok (<=60s)
+ScenG log tampering          10     25s       ok (<=60s)
+Step4 data read              8      41s       ok (<=60s)
+Step1 kubectl exec           8      18s       ok (<=90s)
+
+within target: 9   over target: 0
+(CloudTrail rules 100300/100301 use a 15-min target; they back up the faster sources.)

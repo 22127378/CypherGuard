@@ -1,0 +1,99 @@
+No image tagged 9ff18958f0acc7f92e92c51263dc2d07c57874a0; using the most recently pushed application image.
+Deploying 728384804953.dkr.ecr.ap-southeast-1.amazonaws.com/cipherguard/demo-app@sha256:93f5915a06ffe3e2993961c8e6db790bec8119902cb0e167b28a6e212e4e4deb (mode: detect)
+Release "kyverno" does not exist. Installing it now.
+NAME: kyverno
+LAST DEPLOYED: Thu Nov 26 13:18:59 2026
+NAMESPACE: kyverno
+STATUS: deployed
+REVISION: 1
+DESCRIPTION: Install complete
+NOTES:
+Chart version: 3.10.0
+Kyverno version: v1.20.0
+
+Thank you for installing kyverno! Your release is named kyverno.
+
+The following components have been installed in your cluster:
+- CRDs
+- Admission controller
+- Reports controller
+- Cleanup controller
+- Background controller
+
+
+⚠️  WARNING: Setting the admission controller replica count below 2 means Kyverno is not running in high availability mode.
+
+
+⚠️  WARNING: PolicyExceptions are disabled by default. To enable them, set '--enablePolicyException' to true.
+⚠️  WARNING: The legacy kyverno.io policy types are deprecated and will be removed in a future release. Migrate to their policies.kyverno.io replacements:
+    - ClusterPolicy / Policy → ValidatingPolicy, MutatingPolicy, GeneratingPolicy, ImageValidatingPolicy (and their namespaced variants)
+    - ClusterCleanupPolicy / CleanupPolicy → DeletingPolicy / NamespacedDeletingPolicy
+    - PolicyException (kyverno.io) → PolicyException (policies.kyverno.io)
+    See https://kyverno.io/docs/guides/migration-to-cel/ for the migration guide.
+
+💡 Note: There is a trade-off when deciding which approach to take regarding Namespace exclusions. Please see the documentation at https://kyverno.io/docs/installation/#security-vs-operability to understand the risks.
+namespace/demo created
+Release "falco" does not exist. Installing it now.
+NAME: falco
+LAST DEPLOYED: Thu Nov 26 13:20:34 2026
+NAMESPACE: falco
+STATUS: deployed
+REVISION: 1
+DESCRIPTION: Install complete
+TEST SUITE: None
+NOTES:
+Falco agents are spinning up on each node in your cluster. After a few
+seconds, they are going to start monitoring your containers looking for
+security issues.
+
+TIP:
+You can easily forward Falco events to Slack, Kafka, AWS Lambda and more with falcosidekick.
+Full list of outputs: https://github.com/falcosecurity/charts/tree/master/charts/falcosidekick.
+You can enable its deployment with `--set falcosidekick.enabled=true` or in your values.yaml.
+See: https://github.com/falcosecurity/charts/blob/master/charts/falcosidekick/values.yaml for configuration values.
+Active Response: off (detect-only)
+Bundle: 8628 bytes (NAT EIP 52.77.0.216, instance i-0d235ec5b739dea09)
+verify-agent-conf: OK
+
+Active Response disabled
+Wazuh manager restarted with CipherGuard config
+	2026/11/26 06:21:24 wazuh-analysisd: INFO: Rule tree threshold 'analysisd.rule_tree_memory_warning' set to 64030304 nodes: 25% of 7816 MiB of physical memory, 32 bytes per node.
+
+wazuh-sync: done
+Release "cluster-policies" does not exist. Installing it now.
+NAME: cluster-policies
+LAST DEPLOYED: Thu Nov 26 13:21:47 2026
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+DESCRIPTION: Install complete
+TEST SUITE: None
+NAME                                                                         AGE     READY
+validatingpolicy.policies.kyverno.io/deny-cluster-admin-to-serviceaccounts   2m26s   false
+validatingpolicy.policies.kyverno.io/pod-security-baseline                   2m26s   true
+validatingpolicy.policies.kyverno.io/pod-security-restricted                 2m26s   true
+validatingpolicy.policies.kyverno.io/restrict-image-registries               2m26s   true
+
+NAME                                                                AGE     READY
+imagevalidatingpolicy.policies.kyverno.io/verify-image-signatures   2m26s   true
+Release "demo-app" does not exist. Installing it now.
+NAME: demo-app
+LAST DEPLOYED: Thu Nov 26 13:24:16 2026
+NAMESPACE: demo
+STATUS: deployed
+REVISION: 1
+DESCRIPTION: Install complete
+TEST SUITE: None
+ok    demo-app rolled out
+ok    no Kubernetes API token mounted
+ok    IRSA role injected
+ok    no static AWS keys in env
+ok    running by digest
+ok    /healthz 200
+ok    IRSA -> SSM works: {"greeting": "hello from CipherGuard"}
+ok    image from another registry (unsigned) admitted (audit mode)
+ok    privileged pod admitted (audit mode)
+ok    hostPath mount of / admitted (audit mode)
+ok    cluster-admin bound to a ServiceAccount admitted (audit mode)
+
+smoke test passed (detect)

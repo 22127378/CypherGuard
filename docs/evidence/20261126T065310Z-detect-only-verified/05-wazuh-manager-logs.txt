@@ -1,0 +1,102 @@
+---
+2026/11/26 06:47:12 wazuh-modulesd:aws-s3: WARNING: Service: cloudwatchlogs  -  Returned exit code 16
+2026/11/26 06:47:12 wazuh-modulesd:aws-s3: WARNING: Service: cloudwatchlogs  -  The "get_log_streams" request failed: An error occurred (AccessDeniedException) when calling the DescribeLogStreams operation: User: arn:aws:sts::728384804953:assumed-role/cipherguard-wazuh/i-0d235ec5b739dea09 is not authorized to perform: logs:DescribeLogStreams on resource: arn:aws:logs:ap-southeast-1:728384804953:log-group:/cipherguard/guardduty because no identity-based policy allows the logs:DescribeLogStreams action
+
+2026/11/26 06:47:12 wazuh-modulesd:aws-s3: INFO: Fetching logs finished.
+2026/11/26 06:47:36 wazuh-modulesd:aws-s3: INFO: Starting fetching of logs.
+2026/11/26 06:47:36 wazuh-modulesd:aws-s3: INFO: Executing Bucket Analysis: (Bucket: cipherguard-cloudtrail-728384804953, Type: cloudtrail)
+2026/11/26 06:47:38 wazuh-modulesd:aws-s3: INFO: Executing Service Analysis: (Service: cloudwatchlogs)
+2026/11/26 06:47:41 wazuh-modulesd:aws-s3: INFO: Executing Service Analysis: (Service: cloudwatchlogs)
+2026/11/26 06:47:42 wazuh-modulesd:aws-s3: WARNING: Service: cloudwatchlogs  -  Returned exit code 16
+2026/11/26 06:47:42 wazuh-modulesd:aws-s3: WARNING: Service: cloudwatchlogs  -  The "get_log_streams" request failed: An error occurred (AccessDeniedException) when calling the DescribeLogStreams operation: User: arn:aws:sts::728384804953:assumed-role/cipherguard-wazuh/i-0d235ec5b739dea09 is not authorized to perform: logs:DescribeLogStreams on resource: arn:aws:logs:ap-southeast-1:728384804953:log-group:/cipherguard/guardduty because no identity-based policy allows the logs:DescribeLogStreams action
+
+2026/11/26 06:47:42 wazuh-modulesd:aws-s3: INFO: Fetching logs finished.
+2026/11/26 06:48:06 wazuh-modulesd:aws-s3: INFO: Starting fetching of logs.
+2026/11/26 06:48:06 wazuh-modulesd:aws-s3: INFO: Executing Bucket Analysis: (Bucket: cipherguard-cloudtrail-728384804953, Type: cloudtrail)
+2026/11/26 06:48:08 wazuh-modulesd:aws-s3: INFO: Executing Service Analysis: (Service: cloudwatchlogs)
+2026/11/26 06:48:10 wazuh-modulesd:aws-s3: INFO: Executing Service Analysis: (Service: cloudwatchlogs)
+2026/11/26 06:48:11 wazuh-modulesd:aws-s3: WARNING: Service: cloudwatchlogs  -  Returned exit code 16
+2026/11/26 06:48:11 wazuh-modulesd:aws-s3: WARNING: Service: cloudwatchlogs  -  The "get_log_streams" request failed: An error occurred (AccessDeniedException) when calling the DescribeLogStreams operation: User: arn:aws:sts::728384804953:assumed-role/cipherguard-wazuh/i-0d235ec5b739dea09 is not authorized to perform: logs:DescribeLogStreams on resource: arn:aws:logs:ap-southeast-1:728384804953:log-group:/cipherguard/guardduty because no identity-based policy allows the logs:DescribeLogStreams action
+
+2026/11/26 06:48:11 wazuh-modulesd:aws-s3: INFO: Fetching logs finished.
+2026/11/26 06:48:36 wazuh-modulesd:aws-s3: INFO: Starting fetching of logs.
+2026/11/26 06:48:36 wazuh-modulesd:aws-s3: INFO: Executing Bucket Analysis: (Bucket: cipherguard-cloudtrail-728384804953, Type: cloudtrail)
+2026/11/26 06:48:38 wazuh-modulesd:aws-s3: INFO: Executing Service Analysis: (Service: cloudwatchlogs)
+2026/11/26 06:48:41 wazuh-modulesd:aws-s3: INFO: Executing Service Analysis: (Service: cloudwatchlogs)
+2026/11/26 06:48:42 wazuh-modulesd:aws-s3: WARNING: Service: cloudwatchlogs  -  Returned exit code 16
+2026/11/26 06:48:42 wazuh-modulesd:aws-s3: WARNING: Service: cloudwatchlogs  -  The "get_log_streams" request failed: An error occurred (AccessDeniedException) when calling the DescribeLogStreams operation: User: arn:aws:sts::728384804953:assumed-role/cipherguard-wazuh/i-0d235ec5b739dea09 is not authorized to perform: logs:DescribeLogStreams on resource: arn:aws:logs:ap-southeast-1:728384804953:log-group:/cipherguard/guardduty because no identity-based policy allows the logs:DescribeLogStreams action
+
+2026/11/26 06:48:42 wazuh-modulesd:aws-s3: INFO: Fetching logs finished.
+2026/11/26 06:49:06 wazuh-modulesd:aws-s3: INFO: Starting fetching of logs.
+2026/11/26 06:49:06 wazuh-modulesd:aws-s3: INFO: Executing Bucket Analysis: (Bucket: cipherguard-cloudtrail-728384804953, Type: cloudtrail)
+2026/11/26 06:49:08 wazuh-modulesd:aws-s3: INFO: Executing Service Analysis: (Service: cloudwatchlogs)
+2026/11/26 06:49:11 wazuh-modulesd:aws-s3: INFO: Executing Service Analysis: (Service: cloudwatchlogs)
+2026/11/26 06:49:12 wazuh-modulesd:aws-s3: WARNING: Service: cloudwatchlogs  -  Returned exit code 16
+2026/11/26 06:49:12 wazuh-modulesd:aws-s3: WARNING: Service: cloudwatchlogs  -  The "get_log_streams" request failed: An error occurred (AccessDeniedException) when calling the DescribeLogStreams operation: User: arn:aws:sts::728384804953:assumed-role/cipherguard-wazuh/i-0d235ec5b739dea09 is not authorized to perform: logs:DescribeLogStreams on resource: arn:aws:logs:ap-southeast-1:728384804953:log-group:/cipherguard/guardduty because no identity-based policy allows the logs:DescribeLogStreams action
+
+2026/11/26 06:49:12 wazuh-modulesd:aws-s3: INFO: Fetching logs finished.
+2026/11/26 06:49:36 wazuh-modulesd:aws-s3: INFO: Starting fetching of logs.
+2026/11/26 06:49:36 wazuh-modulesd:aws-s3: INFO: Executing Bucket Analysis: (Bucket: cipherguard-cloudtrail-728384804953, Type: cloudtrail)
+2026/11/26 06:49:38 wazuh-modulesd:aws-s3: INFO: Executing Service Analysis: (Service: cloudwatchlogs)
+2026/11/26 06:49:41 wazuh-modulesd:aws-s3: INFO: Executing Service Analysis: (Service: cloudwatchlogs)
+2026/11/26 06:49:42 wazuh-modulesd:aws-s3: WARNING: Service: cloudwatchlogs  -  Returned exit code 16
+2026/11/26 06:49:42 wazuh-modulesd:aws-s3: WARNING: Service: cloudwatchlogs  -  The "get_log_streams" request failed: An error occurred (AccessDeniedException) when calling the DescribeLogStreams operation: User: arn:aws:sts::728384804953:assumed-role/cipherguard-wazuh/i-0d235ec5b739dea09 is not authorized to perform: logs:DescribeLogStreams on resource: arn:aws:logs:ap-southeast-1:728384804953:log-group:/cipherguard/guardduty because no identity-based policy allows the logs:DescribeLogStreams action
+
+2026/11/26 06:49:42 wazuh-modulesd:aws-s3: INFO: Fetching logs finished.
+2026/11/26 06:50:06 wazuh-modulesd:aws-s3: INFO: Starting fetching of logs.
+2026/11/26 06:50:06 wazuh-modulesd:aws-s3: INFO: Executing Bucket Analysis: (Bucket: cipherguard-cloudtrail-728384804953, Type: cloudtrail)
+2026/11/26 06:50:08 wazuh-modulesd:aws-s3: INFO: Executing Service Analysis: (Service: cloudwatchlogs)
+2026/11/26 06:50:11 wazuh-modulesd:aws-s3: INFO: Executing Service Analysis: (Service: cloudwatchlogs)
+2026/11/26 06:50:12 wazuh-modulesd:aws-s3: WARNING: Service: cloudwatchlogs  -  Returned exit code 16
+2026/11/26 06:50:12 wazuh-modulesd:aws-s3: WARNING: Service: cloudwatchlogs  -  The "get_log_streams" request failed: An error occurred (AccessDeniedException) when calling the DescribeLogStreams operation: User: arn:aws:sts::728384804953:assumed-role/cipherguard-wazuh/i-0d235ec5b739dea09 is not authorized to perform: logs:DescribeLogStreams on resource: arn:aws:logs:ap-southeast-1:728384804953:log-group:/cipherguard/guardduty because no identity-based policy allows the logs:DescribeLogStreams action
+
+2026/11/26 06:50:12 wazuh-modulesd:aws-s3: INFO: Fetching logs finished.
+2026/11/26 06:50:36 wazuh-modulesd:aws-s3: INFO: Starting fetching of logs.
+2026/11/26 06:50:36 wazuh-modulesd:aws-s3: INFO: Executing Bucket Analysis: (Bucket: cipherguard-cloudtrail-728384804953, Type: cloudtrail)
+2026/11/26 06:50:38 wazuh-modulesd:aws-s3: INFO: Executing Service Analysis: (Service: cloudwatchlogs)
+2026/11/26 06:50:40 wazuh-modulesd:aws-s3: INFO: Executing Service Analysis: (Service: cloudwatchlogs)
+2026/11/26 06:50:41 wazuh-modulesd:aws-s3: WARNING: Service: cloudwatchlogs  -  Returned exit code 16
+2026/11/26 06:50:41 wazuh-modulesd:aws-s3: WARNING: Service: cloudwatchlogs  -  The "get_log_streams" request failed: An error occurred (AccessDeniedException) when calling the DescribeLogStreams operation: User: arn:aws:sts::728384804953:assumed-role/cipherguard-wazuh/i-0d235ec5b739dea09 is not authorized to perform: logs:DescribeLogStreams on resource: arn:aws:logs:ap-southeast-1:728384804953:log-group:/cipherguard/guardduty because no identity-based policy allows the logs:DescribeLogStreams action
+
+2026/11/26 06:50:41 wazuh-modulesd:aws-s3: INFO: Fetching logs finished.
+2026/11/26 06:51:06 wazuh-modulesd:aws-s3: INFO: Starting fetching of logs.
+2026/11/26 06:51:06 wazuh-modulesd:aws-s3: INFO: Executing Bucket Analysis: (Bucket: cipherguard-cloudtrail-728384804953, Type: cloudtrail)
+2026/11/26 06:51:08 wazuh-modulesd:aws-s3: INFO: Executing Service Analysis: (Service: cloudwatchlogs)
+2026/11/26 06:51:11 wazuh-modulesd:aws-s3: INFO: Executing Service Analysis: (Service: cloudwatchlogs)
+2026/11/26 06:51:12 wazuh-modulesd:aws-s3: WARNING: Service: cloudwatchlogs  -  Returned exit code 16
+2026/11/26 06:51:12 wazuh-modulesd:aws-s3: WARNING: Service: cloudwatchlogs  -  The "get_log_streams" request failed: An error occurred (AccessDeniedException) when calling the DescribeLogStreams operation: User: arn:aws:sts::728384804953:assumed-role/cipherguard-wazuh/i-0d235ec5b739dea09 is not authorized to perform: logs:DescribeLogStreams on resource: arn:aws:logs:ap-southeast-1:728384804953:log-group:/cipherguard/guardduty because no identity-based policy allows the logs:DescribeLogStreams action
+
+2026/11/26 06:51:12 wazuh-modulesd:aws-s3: INFO: Fetching logs finished.
+2026/11/26 06:51:36 wazuh-modulesd:aws-s3: INFO: Starting fetching of logs.
+2026/11/26 06:51:36 wazuh-modulesd:aws-s3: INFO: Executing Bucket Analysis: (Bucket: cipherguard-cloudtrail-728384804953, Type: cloudtrail)
+2026/11/26 06:51:38 wazuh-modulesd:aws-s3: INFO: Executing Service Analysis: (Service: cloudwatchlogs)
+2026/11/26 06:51:41 wazuh-modulesd:aws-s3: INFO: Executing Service Analysis: (Service: cloudwatchlogs)
+2026/11/26 06:51:42 wazuh-modulesd:aws-s3: WARNING: Service: cloudwatchlogs  -  Returned exit code 16
+2026/11/26 06:51:42 wazuh-modulesd:aws-s3: WARNING: Service: cloudwatchlogs  -  The "get_log_streams" request failed: An error occurred (AccessDeniedException) when calling the DescribeLogStreams operation: User: arn:aws:sts::728384804953:assumed-role/cipherguard-wazuh/i-0d235ec5b739dea09 is not authorized to perform: logs:DescribeLogStreams on resource: arn:aws:logs:ap-southeast-1:728384804953:log-group:/cipherguard/guardduty because no identity-based policy allows the logs:DescribeLogStreams action
+
+2026/11/26 06:51:42 wazuh-modulesd:aws-s3: INFO: Fetching logs finished.
+2026/11/26 06:52:06 wazuh-modulesd:aws-s3: INFO: Starting fetching of logs.
+2026/11/26 06:52:06 wazuh-modulesd:aws-s3: INFO: Executing Bucket Analysis: (Bucket: cipherguard-cloudtrail-728384804953, Type: cloudtrail)
+2026/11/26 06:52:08 wazuh-modulesd:aws-s3: INFO: Executing Service Analysis: (Service: cloudwatchlogs)
+2026/11/26 06:52:11 wazuh-modulesd:aws-s3: INFO: Executing Service Analysis: (Service: cloudwatchlogs)
+2026/11/26 06:52:12 wazuh-modulesd:aws-s3: WARNING: Service: cloudwatchlogs  -  Returned exit code 16
+2026/11/26 06:52:12 wazuh-modulesd:aws-s3: WARNING: Service: cloudwatchlogs  -  The "get_log_streams" request failed: An error occurred (AccessDeniedException) when calling the DescribeLogStreams operation: User: arn:aws:sts::728384804953:assumed-role/cipherguard-wazuh/i-0d235ec5b739dea09 is not authorized to perform: logs:DescribeLogStreams on resource: arn:aws:logs:ap-southeast-1:728384804953:log-group:/cipherguard/guardduty because no identity-based policy allows the logs:DescribeLogStreams action
+
+2026/11/26 06:52:12 wazuh-modulesd:aws-s3: INFO: Fetching logs finished.
+2026/11/26 06:52:36 wazuh-modulesd:aws-s3: INFO: Starting fetching of logs.
+2026/11/26 06:52:36 wazuh-modulesd:aws-s3: INFO: Executing Bucket Analysis: (Bucket: cipherguard-cloudtrail-728384804953, Type: cloudtrail)
+2026/11/26 06:52:37 wazuh-modulesd:aws-s3: INFO: Executing Service Analysis: (Service: cloudwatchlogs)
+2026/11/26 06:52:40 wazuh-modulesd:aws-s3: INFO: Executing Service Analysis: (Service: cloudwatchlogs)
+2026/11/26 06:52:41 wazuh-modulesd:aws-s3: WARNING: Service: cloudwatchlogs  -  Returned exit code 16
+2026/11/26 06:52:41 wazuh-modulesd:aws-s3: WARNING: Service: cloudwatchlogs  -  The "get_log_streams" request failed: An error occurred (AccessDeniedException) when calling the DescribeLogStreams operation: User: arn:aws:sts::728384804953:assumed-role/cipherguard-wazuh/i-0d235ec5b739dea09 is not authorized to perform: logs:DescribeLogStreams on resource: arn:aws:logs:ap-southeast-1:728384804953:log-group:/cipherguard/guardduty because no identity-based policy allows the logs:DescribeLogStreams action
+
+2026/11/26 06:52:41 wazuh-modulesd:aws-s3: INFO: Fetching logs finished.
+2026/11/26 06:53:06 wazuh-modulesd:aws-s3: INFO: Starting fetching of logs.
+2026/11/26 06:53:06 wazuh-modulesd:aws-s3: INFO: Executing Bucket Analysis: (Bucket: cipherguard-cloudtrail-728384804953, Type: cloudtrail)
+2026/11/26 06:53:08 wazuh-modulesd:aws-s3: INFO: Executing Service Analysis: (Service: cloudwatchlogs)
+2026/11/26 06:53:11 wazuh-modulesd:aws-s3: INFO: Executing Service Analysis: (Service: cloudwatchlogs)
+2026/11/26 06:53:12 wazuh-modulesd:aws-s3: WARNING: Service: cloudwatchlogs  -  Returned exit code 16
+2026/11/26 06:53:12 wazuh-modulesd:aws-s3: WARNING: Service: cloudwatchlogs  -  The "get_log_streams" request failed: An error occurred (AccessDeniedException) when calling the DescribeLogStreams operation: User: arn:aws:sts::728384804953:assumed-role/cipherguard-wazuh/i-0d235ec5b739dea09 is not authorized to perform: logs:DescribeLogStreams on resource: arn:aws:logs:ap-southeast-1:728384804953:log-group:/cipherguard/guardduty because no identity-based policy allows the logs:DescribeLogStreams action
+
+2026/11/26 06:53:12 wazuh-modulesd:aws-s3: INFO: Fetching logs finished.
+
