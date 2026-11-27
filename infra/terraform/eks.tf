@@ -21,7 +21,7 @@ locals {
 module "eks" {
   #checkov:skip=CKV_TF_1:Registry module pinned by version constraint; Dependabot tracks updates
   source  = "terraform-aws-modules/eks/aws"
-  version = "~> 20.31"
+  version = "~> 21.30"
 
   cluster_name    = "${local.name}-eks"
   cluster_version = var.cluster_version
