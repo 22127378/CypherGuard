@@ -14,7 +14,13 @@ set -uo pipefail
 LOG="${CG_AR_LOG:-/var/ossec/logs/active-responses.log}"
 log() { echo "$(date '+%Y-%m-%d %H:%M:%S') cipherguard-isolate: $*" >>"$LOG"; }
 
-input="$(cat)"
+# Wazuh 4.x execd writes ONE JSON line to stdin and keeps the pipe open (it
+# may wait for a reply), so read exactly one line. Found live: a previous
+# version used "$(cat)", which waits for EOF that never comes. The script hung,
+# execd stopped reading its queue, wazuh-agentd blocked behind it and stopped
+# sending keepalives and events: agents showed "Disconnected" and alerts were
+# lost. The 10 s timeout keeps a stray caller from wedging execd again.
+IFS= read -r -t 10 input || true
 
 # One python call extracts both fields. Wazuh has been observed to nest
 # "alert" either as an object or as a JSON-encoded string depending on
@@ -39,7 +45,11 @@ try:
     cid = cont.get("id", "") if isinstance(cont, dict) else ""
     if not cid and isinstance(of, dict):
         cid = of.get("container.id", "")
-    print(f"OK\t{ar_command}\t{cid}")
+    k8s = of.get("k8s", {}) if isinstance(of, dict) else {}
+    ns = (k8s.get("ns", {}) or {}).get("name", "") if isinstance(k8s, dict) else ""
+    if not ns and isinstance(of, dict):
+        ns = of.get("k8s.ns.name", "")
+    print(f"OK\t{ar_command}\t{cid}\t{ns}")
 except Exception as e:
     print(f"PARSEFAIL\t{type(e).__name__}: {e}")
 ' 2>&1)"
@@ -53,6 +63,12 @@ fi
 
 ar_command="$(printf '%s' "$parsed" | cut -f2)"
 cid="$(printf '%s' "$parsed" | cut -f3)"
+ns="$(printf '%s' "$parsed" | cut -f4)"
+
+# Only ever isolate application pods. Found live: the IMDS rule matched the
+# VPC CNI (aws-node, kube-system), and this script killed it. Killing system
+# pods breaks the node; those alerts are for a human, not for automation.
+SCOPE="${CG_AR_NAMESPACES:-demo}"
 
 # Wazuh calls with "add" to act, "delete" to roll back; we only act on add.
 [ "$ar_command" = "add" ] || { log "ignoring command=$ar_command"; exit 0; }
@@ -61,6 +77,12 @@ if [ -z "$cid" ] || [ "$cid" = "host" ]; then
   log "no pod container id in alert (host-level event); taking no action"
   exit 0
 fi
+
+case " $SCOPE " in
+  *" $ns "*) ;;
+  *) log "container $cid is in namespace '${ns:-unknown}', outside AR scope ($SCOPE); taking no action"
+     exit 0 ;;
+esac
 
 # containerd's own CLI: crictl is not present on this AL2023 AMI.
 if ! command -v ctr >/dev/null 2>&1; then
@@ -72,7 +94,10 @@ fi
 full="$(ctr -n k8s.io containers ls -q 2>/dev/null | grep "^$cid" | head -1 || true)"
 target="${full:-$cid}"
 
-if ctr -n k8s.io tasks kill "$target" >>"$LOG" 2>&1; then
+# SIGKILL, not ctr's default SIGTERM. Found live: the app is PID 1 in its
+# PID namespace and installs no SIGTERM handler, so the kernel drops SIGTERM;
+# the script logged "stopped" while the attacker's container kept running.
+if ctr -n k8s.io tasks kill -s SIGKILL "$target" >>"$LOG" 2>&1; then
   log "stopped container $target (Active Response)"
 else
   log "failed to stop container $target"

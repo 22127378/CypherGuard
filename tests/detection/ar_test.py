@@ -54,12 +54,33 @@ def real_alert() -> dict:
     return out
 
 
-def run(ar_input: dict, work: str) -> str:
+def run(ar_input, work: str) -> str:
+    """Call the script the way wazuh-execd does: one JSON line on stdin, and
+    the pipe is left OPEN (execd may wait for a reply). Found live: a script
+    that waits for EOF hangs here, wedging execd and the agent behind it."""
     log = os.path.join(work, "ar.log")
     open(log, "w").close()
     env = dict(os.environ, CG_AR_LOG=log, PATH=f"{work}:{os.environ['PATH']}")
-    subprocess.run(["bash", SCRIPT], input=json.dumps(ar_input).encode(), env=env, check=False)
+    line = ar_input if isinstance(ar_input, str) else json.dumps(ar_input)
+    p = subprocess.Popen(["bash", SCRIPT], stdin=subprocess.PIPE, env=env)
+    p.stdin.write((line + "\n").encode())
+    p.stdin.flush()  # deliberately not closed
+    try:
+        p.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        p.kill()
+        p.wait()
+        return "HUNG: script did not return with stdin left open"
+    finally:
+        p.stdin.close()
     return open(log).read()
+
+
+def system_pod_alert(alert: dict) -> dict:
+    """Same alert, but from the VPC CNI in kube-system (the live false positive)."""
+    a = json.loads(json.dumps(alert))
+    a["data"]["output_fields"]["k8s"] = {"ns": {"name": "kube-system"}, "pod": {"name": "aws-node-br697"}}
+    return a
 
 
 def main():
@@ -73,7 +94,10 @@ def main():
             fh.write("#!/bin/bash\n"
                      "case \"$*\" in\n"
                      "  *'containers ls'*) echo 3f2a9c1b7d10aaaabbbbccccdddd ;;\n"
-                     "  *'tasks kill'*) echo \"KILLED ${@: -1}\" ;;\n"
+                     # Only SIGKILL stops a PID-1 app without a SIGTERM
+                     # handler (found live), so any other signal is a failure.
+                     "  *'tasks kill -s SIGKILL'*) echo \"KILLED ${@: -1}\" ;;\n"
+                     "  *'tasks kill'*) echo 'signal ignored by PID 1' >&2; exit 1 ;;\n"
                      "esac\n")
         os.chmod(stub, 0o755)
 
@@ -83,6 +107,9 @@ def main():
             ("isolate (alert as JSON string)",
              {"command": "add", "parameters": {"alert": json.dumps(alert)}},
              "stopped container 3f2a9c1b7d10aaaabbbbccccdddd"),
+            ("system pod is never isolated",
+             {"command": "add", "parameters": {"alert": system_pod_alert(alert)}},
+             "outside AR scope"),
             ("delete is a no-op", {"command": "delete", "parameters": {"alert": alert}},
              "ignoring command=delete"),
         ]
@@ -93,11 +120,7 @@ def main():
             print(f"{'PASS' if ok else 'FAIL'} AR {name}" + ("" if ok else f": {got.strip()}"))
 
         # Malformed input must be reported, not swallowed.
-        log = os.path.join(work, "ar.log")
-        open(log, "w").close()
-        env = dict(os.environ, CG_AR_LOG=log, PATH=f"{work}:{os.environ['PATH']}")
-        subprocess.run(["bash", SCRIPT], input=b"not json", env=env, check=False)
-        ok = "failed to parse AR input" in open(log).read()
+        ok = "failed to parse AR input" in run("not json", work)
         failures += not ok
         print(f"{'PASS' if ok else 'FAIL'} AR malformed input is logged")
 
