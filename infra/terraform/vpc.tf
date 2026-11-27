@@ -6,7 +6,7 @@ locals {
 module "vpc" {
   #checkov:skip=CKV_TF_1:Registry module pinned by version constraint; Dependabot tracks updates
   source  = "terraform-aws-modules/vpc/aws"
-  version = "~> 5.16"
+  version = "~> 6.8"
 
   name = "${local.name}-vpc"
   cidr = var.vpc_cidr
