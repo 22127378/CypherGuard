@@ -111,6 +111,9 @@ JSON
   [ "$got_crit" = "3" ] || { echo "query-alerts crit wrong: $got_crit"; return 1; }
   echo "query-alerts parser: ok"
 
+  # 0b. GuardDuty auto-fix Lambda guards (fake IAM client, no AWS calls).
+  python3 "$ROOT/tests/lambda/test_autofix.py" || return 1
+
   # 1. Falco: custom rules load cleanly next to the default ruleset.
   docker run --rm -v "$ROOT/detection/falco:/rules:ro" --entrypoint falco "$FALCO_IMG" \
     -V /etc/falco/falco_rules.yaml -V /rules/cipherguard_rules.yaml 2>&1 | tee /tmp/cg-falco-validate.log

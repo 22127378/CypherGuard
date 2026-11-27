@@ -8,21 +8,26 @@ compromised credential:
     (IAM evaluates policy in real time);
   - an IAM user access key flagged in the finding: deactivate the key.
 
-Guards: it only ever touches roles named cipherguard-* and never the pipeline
-roles (cipherguard-gha-*) or its own role (cipherguard-autofix). Set CG_DRYRUN=1
-to log intended actions without making changes.
+Guards: it only ever touches roles and users named cipherguard-*, and never
+the pipeline roles (cipherguard-gha-*), its own role (cipherguard-autofix) or
+the operator principals (cipherguard-admin, cipherguard-cluster-admin). Found
+live: the key path had no guard, so a high-severity finding (even a false
+positive or a GuardDuty sample) naming any IAM user would deactivate that
+user's key, including the operator's own. Set CG_DRYRUN=1 to log intended
+actions without making changes.
 """
 import json
 import os
 import re
 
 import boto3
+from botocore.exceptions import ClientError
 
 iam = boto3.client("iam")
 
 DRYRUN = os.environ.get("CG_DRYRUN") == "1"
 ALLOWED = re.compile(r"^cipherguard-")
-PROTECTED = re.compile(r"^cipherguard-(gha-|autofix)")
+PROTECTED = re.compile(r"^cipherguard-(gha-|autofix|admin$|cluster-admin$)")
 QUARANTINE = "CipherGuardQuarantine"
 DENY_ALL = {
     "Version": "2012-10-17",
@@ -39,18 +44,28 @@ def quarantine_role(role: str) -> str:
         return f"skip role {role} (not an in-scope lab role)"
     if DRYRUN:
         return f"[dry-run] would attach {QUARANTINE} deny policy to {role}"
-    iam.put_role_policy(
-        RoleName=role, PolicyName=QUARANTINE, PolicyDocument=json.dumps(DENY_ALL)
-    )
+    try:
+        iam.put_role_policy(
+            RoleName=role, PolicyName=QUARANTINE, PolicyDocument=json.dumps(DENY_ALL)
+        )
+    except ClientError as e:
+        return f"failed to quarantine role {role}: {e.response['Error']['Code']}"
     return f"attached {QUARANTINE} deny policy to {role}"
 
 
 def disable_key(user: str, key_id: str) -> str:
     if not key_id:
         return "no access key in finding"
+    if not _may_touch(user):
+        return f"skip user {user} (not an in-scope lab user)"
     if DRYRUN:
         return f"[dry-run] would deactivate access key {key_id} of {user}"
-    iam.update_access_key(UserName=user, AccessKeyId=key_id, Status="Inactive")
+    try:
+        iam.update_access_key(UserName=user, AccessKeyId=key_id, Status="Inactive")
+    except ClientError as e:
+        # Found live: a GuardDuty sample finding names a user that does not
+        # exist, and the uncaught error failed the invocation.
+        return f"failed to deactivate key {key_id} of {user}: {e.response['Error']['Code']}"
     return f"deactivated access key {key_id} of {user}"
 
 
@@ -66,7 +81,10 @@ def handler(event, _context):
     key_id = access.get("accessKeyId", "")
 
     actions = []
-    if user_type == "AssumedRole" or ALLOWED.match(name or ""):
+    # Act on the principal type the finding names: a role for an assumed-role
+    # session, a key for an IAM user. (A prior version also treated any
+    # cipherguard-* IAM user as a role and tried to quarantine it.)
+    if user_type == "AssumedRole":
         actions.append(quarantine_role(name))
     if user_type == "IAMUser":
         actions.append(disable_key(name, key_id))
