@@ -8,6 +8,14 @@
 - list: cg_app_namespaces
   items: [demo]
 
+# Platform pods that legitimately reach node-level resources. Found live: the
+# VPC CNI (aws-node, kube-system, hostNetwork) queries IMDS continuously to
+# manage ENIs; the IMDS rule raised ~940 CRITICAL alerts from it in 30 min and
+# Active Response killed it. Attacks against these namespaces need cluster
+# admin already, which the audit-log rules (100200+) cover.
+- list: cg_system_namespaces
+  items: [kube-system]
+
 - macro: cg_app_container
   condition: (container and k8s.ns.name in (cg_app_namespaces))
 
@@ -38,6 +46,7 @@
   desc: A container connects to the EC2 instance metadata service (node role credentials).
   condition: >
     evt.type = connect and container
+    and not k8s.ns.name in (cg_system_namespaces)
     and fd.sip = "169.254.169.254"
     and (evt.rawres >= 0 or evt.res = EINPROGRESS)
   output: >
