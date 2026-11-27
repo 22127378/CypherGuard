@@ -1,0 +1,9 @@
+# scripts/delivery-test.sh results, 2026-11-27 (detect mode, AR off)
+# Falco events = lines for "CipherGuard Escape Tooling In Container" in the Falco pod log
+# Wazuh alerts = rule 100114 in alerts.json since the start of the run
+
+run                                   triggers  falco_events  wazuh_alerts  result
+20 x, 3 s apart                       20        20            20            DELIVERY OK
+30 x, back to back                    30        30            30            DELIVERY OK
+20 x, 3 s apart, manager restarted    20        20            20            DELIVERY OK
+  (systemctl restart wazuh-manager at 04:59:21, 12 s into the run)

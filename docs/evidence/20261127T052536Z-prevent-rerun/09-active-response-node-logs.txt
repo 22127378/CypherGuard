@@ -1,0 +1,15 @@
+### node via cg-nodeshell
+      4 2026-11-27 05:23:36 cipherguard-isolate: container 920bca25d49a is in namespace 'kube-system', outside AR scope (demo); taking no action
+      4 2026-11-27 05:23:46 cipherguard-isolate: container 920bca25d49a is in namespace 'kube-system', outside AR scope (demo); taking no action
+      4 2026-11-27 05:24:10 cipherguard-isolate: container 920bca25d49a is in namespace 'kube-system', outside AR scope (demo); taking no action
+      1 2026-11-27 05:24:20 cipherguard-isolate: stopped container 859f66fb7f3354da124e1d15cd74171bf8d72b3f2f13dc03b12c00b1c2e124bf (Active Response)
+      4 2026-11-27 05:24:26 cipherguard-isolate: container 920bca25d49a is in namespace 'kube-system', outside AR scope (demo); taking no action
+      4 2026-11-27 05:24:38 cipherguard-isolate: container 920bca25d49a is in namespace 'kube-system', outside AR scope (demo); taking no action
+      1 2026-11-27 05:25:06 cipherguard-isolate: stopped container b6be9c49f735d7dcc71dc34fae75b24599f6ac3504d1e4928f2b552e40256f2f (Active Response)
+      4 2026-11-27 05:25:30 cipherguard-isolate: container 920bca25d49a is in namespace 'kube-system', outside AR scope (demo); taking no action
+### node via cg-nodeshell2
+     12 2026-11-27 05:16:23 cipherguard-isolate: container 623e202d0319 is in namespace 'kube-system', outside AR scope (demo); taking no action
+     16 2026-11-27 05:16:24 cipherguard-isolate: container 623e202d0319 is in namespace 'kube-system', outside AR scope (demo); taking no action
+     12 2026-11-27 05:16:25 cipherguard-isolate: container 623e202d0319 is in namespace 'kube-system', outside AR scope (demo); taking no action
+      4 2026-11-27 05:24:18 cipherguard-isolate: container 1d503287c254 is in namespace 'kube-system', outside AR scope (demo); taking no action
+      4 2026-11-27 05:24:40 cipherguard-isolate: container 1d503287c254 is in namespace 'kube-system', outside AR scope (demo); taking no action

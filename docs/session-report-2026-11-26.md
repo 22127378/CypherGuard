@@ -85,6 +85,8 @@ Tất cả đã commit vào git với message mô tả rõ nguyên nhân, kèm t
 
 Cần một lượt chạy live tiếp theo để xác nhận tỷ lệ mất alert đã về 0.
 
+**Cập nhật 27/11 (chạy lại live): đã giải quyết.** Nguyên nhân gốc thật sự là script Active Response bị deadlock: nó đọc stdin bằng `$(cat)` trong khi `wazuh-execd` giữ pipe mở. Script treo, kéo theo execd và `wazuh-agentd` treo theo, nên agent ngừng gửi keepalive và event. Sau khi sửa, delivery đạt 20/20, 30/30, và 20/20 kể cả khi restart manager giữa chừng. Active Response kill đúng container trong khoảng 1 giây. Chi tiết và 6 lỗi mới (#10–#15) ở [`docs/evidence/20261127T052536Z-prevent-rerun/08-findings-summary.md`](evidence/20261127T052536Z-prevent-rerun/08-findings-summary.md).
+
 ## 5. Evidence đã lưu
 
 | Thư mục | Nội dung |
