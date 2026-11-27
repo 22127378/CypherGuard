@@ -78,6 +78,13 @@ Tất cả đã commit vào git với message mô tả rõ nguyên nhân, kèm t
 
 Điểm mất mát nằm ở đâu đó giữa agent forward và việc rule match trên manager — chưa xác định được nguyên nhân gốc trong phạm vi chi phí/thời gian hợp lý của một phiên debug trên cluster đang tính tiền. Đã ghi chi tiết toàn bộ quá trình chẩn đoán vào [`docs/evidence/20261126T070646Z-prevent-run-verified/08-findings-summary.md`](evidence/20261126T070646Z-prevent-run-verified/08-findings-summary.md) để điều tra tiếp vào dịp khác.
 
+**Cập nhật 27/11 (offline):** đã tìm ra và sửa ba lỗi cấu hình liên quan:
+- Wazuh tách key có dấu chấm thành object lồng nhau (`container.id` → `container: {id}`), nên script Active Response không bao giờ đọc được container id. Đây là nguyên nhân của dòng log "no pod container id". Đã sửa, kèm test dùng alert thật sinh từ `wazuh-analysisd`.
+- `apply.sh` chỉ restart manager khi cấu hình thật sự thay đổi, và sau khi restart thì cảnh báo nếu agent nào không Active.
+- `logcollector` có `only-future-events=yes` mặc định, nên bỏ qua các dòng Falco ghi ra trong lúc agent reconnect. Đã chuyển sang `no`.
+
+Cần một lượt chạy live tiếp theo để xác nhận tỷ lệ mất alert đã về 0.
+
 ## 5. Evidence đã lưu
 
 | Thư mục | Nội dung |

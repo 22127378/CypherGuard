@@ -147,3 +147,28 @@ lines, or JSON decoder matching timing), not reproducible to a root cause
 within this session's time/cost budget. The end-to-end chain (detection
 -> dispatch -> script -> ctr) has never been observed to fail when the
 alert actually lands; only the landing itself is unreliable.
+
+## Follow-up (2026-11-27, offline): configuration fixes
+
+1. **Root cause of "no pod container id" found and fixed.** Replaying a Falco
+   event through a real `wazuh-manager:4.14.10` analysisd shows Wazuh splits
+   dotted JSON keys into nested objects in the alert it emits:
+   `output_fields["container.id"]` becomes `output_fields.container.id`
+   (`{"container": {"id": ...}}`). The script looked up the flat key, so the
+   id was always empty. That is exactly the live symptom (parse OK, field absent).
+   The script now reads the nested path (flat key as fallback). New test
+   `tests/detection/ar_test.py` feeds the REAL logtest alert to the script with
+   a stub `ctr`; it fails on the old script with the exact live log line and
+   passes on the fixed one (run by `scripts/scan.sh detection`).
+2. **Manager restarts only on change.** `apply.sh` fingerprints the config it
+   manages and skips `systemctl restart wazuh-manager` when nothing changed, so
+   re-running `wazuh-sync.sh` no longer drops agent connections. After a real
+   restart it waits up to 2 min and prints a WARNING naming any agent not Active.
+3. **Logcollector no longer skips lines written during a reconnect.**
+   `only-future-events` was the default `yes`, so Falco lines written while the
+   agent was restarting/reconnecting were never read. Set to `no` in the
+   `eks-nodes` group `agent.conf` (agent resumes from its saved offset).
+
+Items 2 and 3 target the conditions under which loss was observed (restart and
+reconnect churn). Whether they remove all of the ~1-in-5 loss still has to be
+confirmed in the next live run.
