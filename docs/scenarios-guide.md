@@ -63,7 +63,7 @@ Phần dưới đây mô tả từng bước thủ công, để bạn hiểu m�
 Lấy tên pod và vào shell của nó (đây là bước 1, tức foothold):
 
 ```bash
-POD=$(kubectl -n demo get pod -l app.kubernetes.io/name=demo-app -o jsonpath='{.items[0].metadata.name}')
+POD=$(kubectl -n demo get pod -l app.kubernetes.io/name=demo-app --field-selector=status.phase=Running -o jsonpath='{.items[0].metadata.name}')
 kubectl -n demo exec -it "$POD" -- sh
 ```
 
@@ -272,7 +272,7 @@ Nội dung đã bị mã hóa nên không thể kiểm tra được. Phát hiệ
 
 ### Phản hồi tự động (Active Response)
 
-Ở lượt prevent, Wazuh manager chạy [cipherguard-isolate.sh](../detection/wazuh/active-response/cipherguard-isolate.sh) trên node khi một trong các rule 100113, 100114, 100117 hoặc 100130 fire. Script dùng `crictl` để dừng đúng container của pod bị tấn công, không đụng tới node, nên node vẫn kết nối Wazuh.
+Ở lượt prevent, Wazuh manager chạy [cipherguard-isolate.sh](../detection/wazuh/active-response/cipherguard-isolate.sh) trên node khi một trong các rule 100113, 100114, 100117 hoặc 100130 fire. Script dùng `ctr -n k8s.io tasks kill -s SIGKILL` để dừng đúng container của pod bị tấn công, không đụng tới node, nên node vẫn kết nối Wazuh. Script chỉ hành động với pod trong namespace `demo` (biến `CG_AR_NAMESPACES`); alert từ `kube-system` chỉ được ghi log để người xử lý.
 
 ```bash
 # Sau lượt prevent, container của pod có thể đã bị restart:
