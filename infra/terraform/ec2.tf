@@ -102,10 +102,19 @@ resource "aws_iam_instance_profile" "wazuh" {
   role = aws_iam_role.wazuh.name
 }
 
+# Fixed private IP, computed from the VPC CIDR so it is known at plan time.
+# The node user data embeds it; with an IP only known after apply, the EKS
+# module cannot size its cloud-init parts and a from-scratch apply fails
+# ("Invalid count argument"), found on the first fresh deploy.
+locals {
+  wazuh_private_ip = cidrhost(cidrsubnet(var.vpc_cidr, 4, 0), 10)
+}
+
 resource "aws_instance" "wazuh" {
   ami                    = data.aws_ami.ubuntu.id
   instance_type          = var.wazuh_instance_type
   subnet_id              = module.vpc.private_subnets[0]
+  private_ip             = local.wazuh_private_ip
   vpc_security_group_ids = [aws_security_group.wazuh.id]
   iam_instance_profile   = aws_iam_instance_profile.wazuh.name
   monitoring             = true

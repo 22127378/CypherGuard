@@ -117,7 +117,7 @@ module "eks" {
       cloudinit_post_nodeadm = [{
         content_type = "text/x-shellscript; charset=\"us-ascii\""
         content = templatefile("${path.module}/templates/node-wazuh-agent.sh.tftpl", {
-          manager_ip    = aws_instance.wazuh.private_ip
+          manager_ip    = local.wazuh_private_ip
           agent_version = var.wazuh_agent_version
           ar_script     = file("${path.module}/../../detection/wazuh/active-response/cipherguard-isolate.sh")
         })
