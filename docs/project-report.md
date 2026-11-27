@@ -1,7 +1,7 @@
 # Báo cáo dự án CipherGuard v2.0
 
 **Secure Container Pipeline with Kubernetes Runtime Detection**
-Cập nhật: 19/11/2026 · Trạng thái: đã code xong Phase 1–7; còn lại là chạy, đo và viết write-up trên lab thật
+Cập nhật: 27/11/2026 · Trạng thái: Phase 1–7 đã code xong và đã chạy trên AWS thật (26–27/11). Còn lại: ký image bằng CI, baseline 24 giờ, write-up
 
 ## 1. Tóm tắt
 
@@ -16,13 +16,18 @@ CipherGuard v2.0 là một lab DevSecOps. Mục tiêu là chứng minh bảo m�
 
 Điểm khác biệt giữ lại từ v1.0 là bước exfiltration dữ liệu được mã hóa lai (AES-256-GCM + RSA). Mục đích là chứng minh vẫn phát hiện được bằng hành vi khi không thể đọc được nội dung.
 
-**Kết quả hiện tại.** Tất cả kiểm tra offline đều xanh:
-- 5 gate scan;
+**Kết quả hiện tại.** Kiểm tra offline đều xanh:
+- 7 gate scan;
 - 5 negative test chứng minh các gate chặn được thay đổi xấu;
 - 10 test policy Kyverno;
-- 26 case phát hiện chạy qua `wazuh-analysisd` thật.
+- 30 case phát hiện chạy qua `wazuh-analysisd` thật;
+- 5 test Active Response với alert thật do Wazuh sinh ra, và 8 test cho Lambda auto-fix.
 
-Chưa có gì được chạy trên EKS thật. Phase 4 và Phase 5 chỉ được xác nhận hoàn tất khi chạy `make up`, `make deploy` và đo trên lab.
+Lab đã được deploy và kiểm thử trên EKS thật hai lần (26/11 và 27/11, lần sau từ state trống):
+- Chế độ detect: 10/10 rule đạt target.
+- Chế độ prevent: chặn được ở mọi bước, Active Response kill container của kẻ tấn công trong 1–2 giây, Lambda cô lập role bị lạm dụng ngay lập tức.
+
+Việc chạy thật tìm ra **19 lỗi** mà kiểm tra offline không phát hiện được; tất cả đã sửa. Xem mục 4 và hai báo cáo phiên: [26/11](session-report-2026-11-26.md), [27/11](session-report-2026-11-27.md).
 
 ## 2. Kiến trúc
 
@@ -191,14 +196,18 @@ Ngoài ra:
 - **[attack/exfil.py](../attack/exfil.py):** đọc dữ liệu giả ở `/data`, mã hóa body bằng AES-256-GCM, bọc key bằng RSA-OAEP, POST lên attacker host. Script có ba guard giữ nó trong lab: cần biến `CIPHERGUARD_LAB=1`, target phải là IP nội bộ VPC (RFC1918), và chỉ đọc thư mục dữ liệu giả. Script không nằm sẵn trong image mà được thả vào pod lúc chạy, nên chính việc exec script từ `/tmp` cũng là một detection.
 - **Dữ liệu giả:** ConfigMap `demo-app-testdata` (CSV khách hàng giả, secret mồi) mount read-only ở `/data`, bật bằng `testData.enabled`.
 - **[attack/run-attack.sh](../attack/run-attack.sh):** chạy các bước 1–4, D, B, G qua `kubectl exec`, ghi timestamp từng bước để Phase 7 đo độ trễ. Hai lượt: `make attack-detect` và `make attack`.
-- **Cloud auto-fix:** GuardDuty bật (gồm Kubernetes audit log), finding đi qua EventBridge: tới CloudWatch Logs cho Wazuh đọc (rule 100310–100312), và tới Lambda [autofix.py](../infra/terraform/lambda/autofix.py) với finding mức cao (severity ≥ 7). Lambda cô lập credential: gắn inline policy Deny-all lên role bị lạm dụng (chỉ role `cipherguard-*`, không đụng role pipeline hay role của chính Lambda), hoặc vô hiệu access key nếu finding là IAM user. Có chế độ `autofix_dry_run` để chỉ log.
-- **Active Response:** [cipherguard-isolate.sh](../detection/wazuh/active-response/cipherguard-isolate.sh) chạy trên node khi rule 100113, 100114, 100117 hoặc 100130 fire. Nó dùng `crictl` cô lập đúng container của pod bị tấn công, **không** đụng node, nên node vẫn kết nối Wazuh. AR chỉ bật ở lượt prevent, để không cắt ngang việc thu thập alert ở detect-only.
+- **Cloud auto-fix:** GuardDuty bật (gồm Kubernetes audit log), finding đi qua EventBridge: tới CloudWatch Logs cho Wazuh đọc (rule 100310–100312), và tới Lambda [autofix.py](../infra/terraform/lambda/autofix.py) với finding mức cao (severity ≥ 7). Lambda cô lập credential: gắn inline policy Deny-all lên role bị lạm dụng khi finding là phiên assumed-role, hoặc vô hiệu access key khi finding là IAM user. Cả hai nhánh chỉ đụng principal tên `cipherguard-*`, và không bao giờ đụng role pipeline, role của chính Lambda hay principal vận hành (`cipherguard-admin`, `cipherguard-cluster-admin`). Nhánh access key ban đầu không có guard này, và lỗ hổng chỉ lộ ra khi chạy thật (lỗi #17). Có chế độ `autofix_dry_run` để chỉ log.
+- **Active Response:** [cipherguard-isolate.sh](../detection/wazuh/active-response/cipherguard-isolate.sh) chạy trên node khi rule 100113, 100114, 100117 hoặc 100130 fire. Script đọc đúng một dòng JSON mà `wazuh-execd` gửi, lấy `container.id` của alert, rồi dùng `ctr -n k8s.io tasks kill -s SIGKILL` để kill đúng container của pod bị tấn công. Script **không** đụng node, nên node vẫn kết nối Wazuh. Script chỉ hành động với pod trong namespace ứng dụng (`CG_AR_NAMESPACES`, mặc định `demo`), không bao giờ đụng pod hệ thống. AR chỉ bật ở lượt prevent, để không cắt ngang việc thu thập alert ở detect-only. Bốn chi tiết này đều được sửa sau khi chạy thật:
+- dùng `ctr` vì AMI AL2023 không có `crictl` (#9);
+- Wazuh lồng key có dấu chấm thành object (ngày 27/11);
+- đọc stdin bằng `cat` làm treo execd và agent (#12);
+- SIGTERM bị PID 1 bỏ qua (#14).
 
 **Quyết định thiết kế:**
 - **Pod demo đã gỡ pip (Phase 3),** nên `exfil.py` không tự cài được `cryptography` trong pod. `run-attack.sh` chuẩn bị wheel trước (`attack/vendor-deps.sh`) rồi copy vào `/tmp`. Nếu thiếu wheel, runner vẫn chạy phần đọc `/data` và gửi để Falco kích hoạt, và báo rõ là chưa mã hóa.
 - **Cô lập container thay vì xóa pod,** để giữ tiêu chí "node vẫn kết nối Wazuh". Xóa pod thì Deployment tạo lại ngay; cô lập container cho thấy phản hồi rõ hơn và vẫn để lại pod cho điều tra.
 
-**Kiểm chứng offline:** logic mã hóa (AES-256-GCM + RSA-OAEP) và cả ba guard đã test trực tiếp bằng Python. Script AR đã test với `crictl` giả: cô lập container khi có `container.id`, không hành động với event mức host, no-op khi Wazuh gọi rollback. Config AR được `wazuh-analysisd -t` chấp nhận trong detection gate. Lambda auto-fix đã test với finding GuardDuty mẫu ở chế độ dry-run: cô lập role `cipherguard-node-*`, bỏ qua role `cipherguard-gha-*`, role của chính nó và role ngoài phạm vi, vô hiệu access key khi finding là IAM user. Rule GuardDuty (3 case) chạy qua `wazuh-analysisd`. Private key của cặp RSA lab không commit (gitignore), chỉ giữ public key.
+**Kiểm chứng offline:** logic mã hóa (AES-256-GCM + RSA-OAEP) và cả ba guard đã test trực tiếp bằng Python. Script AR được test bằng [tests/detection/ar_test.py](../tests/detection/ar_test.py). Test dùng alert thật do `wazuh-analysisd` sinh ra, gọi script giống hệt cách execd gọi (giữ stdin mở), và dùng một `ctr` giả chỉ chấp nhận SIGKILL. Test kiểm tra: cô lập container, không đụng pod `kube-system`, no-op khi Wazuh gọi rollback, và log lỗi khi input hỏng. Config AR được `wazuh-analysisd -t` chấp nhận trong detection gate. Lambda auto-fix được test bằng [tests/lambda/test_autofix.py](../tests/lambda/test_autofix.py) (8 case, IAM giả): cô lập role lab, vô hiệu key của user lab, và không bao giờ đụng user vận hành, user ngoài phạm vi, user mẫu của GuardDuty, role pipeline hay role cluster-admin. User không tồn tại cũng không làm Lambda crash. Rule GuardDuty (3 case) chạy qua `wazuh-analysisd`. Private key của cặp RSA lab không commit (gitignore), chỉ giữ public key.
 
 ### Phase 7: Kiểm chứng và đo đạc
 
@@ -208,31 +217,39 @@ Ngoài ra:
 - **[detection/wazuh/query-alerts.sh](../detection/wazuh/query-alerts.sh):** chạy trên manager, đọc `alerts.json`, trả về alert sớm nhất mỗi rule hoặc số alert critical kể từ một mốc thời gian. Parser đã test offline với log mẫu (lấy đúng alert sớm nhất, bỏ event cũ và benign).
 - **[tests/detection/falco-eventgen-job.yaml](../tests/detection/falco-eventgen-job.yaml):** chạy `falco/event-generator` trong namespace `falco` để kiểm tra toàn tuyến Falco → Wazuh với ruleset mặc định.
 
-**Chưa làm (cần lab thật):** chạy `make measure` và `make baseline` để lấy số thật, bài baseline 24 giờ, viết blog và quay video. Phần này là chạy và đo, không thêm code.
+- **[scripts/delivery-test.sh](../scripts/delivery-test.sh):** kích hoạt một rule Falco N lần, rồi so số event Falco ghi ra với số alert Wazuh nhận được. Script này được viết sau khi phiên 26/11 bị mất khoảng 4/5 alert.
 
-**Số liệu kỳ vọng** (dựa trên đường truyền, sẽ xác nhận bằng `make measure`):
+**Số đo thật** (27/11, `make measure`, đo từ lúc bắt đầu chuỗi, nên đã gồm cả thời gian các bước trước đó):
 
-| Nguồn | Độ trễ kỳ vọng | Đạt mục tiêu 60s |
+| Rule | Độ trễ | Mục tiêu |
 |---|---|---|
-| Falco (bước 1, 2, 4, D, B, G) | Vài giây | Có |
-| EKS audit (bước 0, 1, 2, 3) | 30–90 giây | Thường đạt, sát ngưỡng |
-| CloudTrail (bước 3, scenario D) | 5–15 phút | Không, là lớp bổ sung |
+| Bước 2: đọc token / gọi API server | 9s / 11s | 60s |
+| D: IMDS | 0s | 60s |
+| B: container escape | 27s | 60s |
+| G: exec từ `/tmp`, xóa log | 29s | 60s |
+| Bước 4: đọc dữ liệu / outbound / tương quan | 45s / 19s / 45s | 60s |
+| Bước 1: `kubectl exec` (EKS audit) | 38s | 90s |
+| Bước 3: AccessDenied (CloudTrail) | 12,5 phút | 15 phút |
+
+Delivery Falco → Wazuh: 20/20 (cách nhau 3s), 30/30 (liên tục), 20/20 (restart manager giữa chừng).
+
+**Chưa làm:** baseline 24 giờ, viết blog và quay video.
 
 ## 4. Tiến độ theo tiêu chí thành công trong proposal
 
 | Tiêu chí | Trạng thái |
 |---|---|
-| Lab tạo từ repo không cần bước tay, xóa bằng một lệnh | Code xong (`make up`, `make down`, `make leftovers`). Chưa chạy thật |
-| Không có credential tĩnh trong repo, pipeline hay pod | Đạt về mặt thiết kế (OIDC, IRSA). gitleaks sạch. Smoke test kiểm tra phần pod |
+| Lab tạo từ repo không cần bước tay, xóa bằng một lệnh | **Đạt**: apply từ state trống tạo 104 resource (sau khi sửa lỗi #10), destroy xóa 104 resource, kiểm tra trực tiếp qua API |
+| Không có credential tĩnh trong repo, pipeline hay pod | **Đạt**: OIDC + IRSA. Smoke test xác nhận pod không có AWS key; gitleaks sạch trên 52 commit |
 | Pipeline chặn thay đổi cố tình sai | **Đạt**: `make negative`, 5/5 |
-| Mọi image có SBOM và chữ ký Cosign hợp lệ, Kyverno từ chối image chưa ký | Code xong. Chạy được khi build lần đầu trên main |
-| Event Falco và EKS audit hiển thị trong Wazuh | Code xong. Rule đã kiểm chứng offline 26/26 |
-| Script exfil gửi được dữ liệu giả trong lượt detect-only | Code xong (`attack/exfil.py`, mã hóa đã test offline). Gửi thật chờ lab |
-| Wazuh alert các bước 1–4 trong 60 giây | Phase 7 đo. Falco: vài giây. Audit log: khoảng 30–90 giây. CloudTrail không đạt (5–15 phút) |
-| Lượt prevent chặn pod privileged và exfil nhưng vẫn có alert | Phần chặn đã test bằng CLI. Phần alert chờ chạy lab |
-| Hành động phản hồi được log, node vẫn kết nối được Wazuh | Code xong (Active Response cô lập container, log ra `active-responses.log`). Chạy thật chờ lab |
-| Smoke test pass mỗi lần deploy | Đã có `scripts/smoke.sh` |
-| Không có false positive critical trong 24 giờ baseline | Công cụ xong (`make baseline`). Bài 24 giờ chờ lab |
+| Mọi image có SBOM và chữ ký Cosign hợp lệ, Kyverno từ chối image chưa ký | Kyverno từ chối image chưa ký: **đạt** trên lab. Ký bằng CI: repo đã push 27/11, chờ lượt chạy đầu của `build.yml` |
+| Event Falco và EKS audit hiển thị trong Wazuh | **Đạt** trên lab. Delivery 20/20, 30/30 và 20/20 khi restart manager |
+| Script exfil gửi được dữ liệu giả trong lượt detect-only | Chuỗi chạy và rule 100119/100120/100130 báo. Chưa đối chiếu file nhận được trên attacker host |
+| Wazuh alert các bước 1–4 trong 60 giây | **Đạt** cho Falco và audit log (10/10). CloudTrail là lớp bổ sung: 12,5 phút, trong target 15 phút |
+| Lượt prevent chặn pod privileged và exfil nhưng vẫn có alert | **Đạt**: admission chặn 4/4, NetworkPolicy chặn egress, alert vẫn tới Wazuh |
+| Hành động phản hồi được log, node vẫn kết nối được Wazuh | **Đạt**: AR kill container trong 1–2 giây với cả 4 rule, agent vẫn Active. Lambda cô lập role ngay lập tức |
+| Smoke test pass mỗi lần deploy | **Đạt**: 11/11 ở cả detect và enforce |
+| Không có false positive critical trong 24 giờ baseline | **Chưa**. Đã loại một nguồn false positive lớn (khoảng 1.400 alert IMDS từ `aws-node`, lỗi #13). Bài 24 giờ chưa chạy |
 
 ## 5. So với proposal
 
@@ -256,7 +273,9 @@ Các khoản tính theo giờ khi lab đang chạy: EKS control plane, 2 node t3
 | Rủi ro | Mức | Hướng xử lý |
 |---|---|---|
 | `gha-apply` dùng PowerUserAccess | Trung bình | Thu hẹp sau khi chạy thật, dựa trên CloudTrail |
-| Format CloudWatch Logs mà module AWS của Wazuh gửi chưa được kiểm chứng trên dữ liệu thật | Trung bình | Kiểm tra event đầu tiên trên lab. Rule có thể cần chỉnh theo tên field |
+| Active Response tự động có thể gây hại nếu rule bắt nhầm (đã xảy ra: lỗi #13) | Trung bình | Hai lớp: rule loại `kube-system`, và script chỉ hành động trong `CG_AR_NAMESPACES`. Chạy baseline trước khi mở rộng danh sách rule |
+| Rule 100205 báo mỗi lần Falco rollout (DaemonSet tạo pod privileged) | Thấp | Thêm allowlist sau baseline 24 giờ |
+| Bản cập nhật major của module EKS (Dependabot: 21.x) có thể đổi cách xử lý user data của node | Trung bình | Đừng merge trước khi deploy thử. Đây chính là chỗ gây ra lỗi #4 và #10 |
 | Audit policy của EKS có thể không ghi `requestObject` cho mọi request | Thấp | Rule 100201 (dựa trên phản hồi admission) vẫn bắt được trường hợp bị chặn |
 | Ký keyless ghi digest và tên repo lên Rekor (log công khai) | Thấp | Có thể đổi sang ký bằng AWS KMS nếu cần giữ kín |
 | Tag `.sig` immutable khiến không ký lại được cùng một digest | Thấp | Mỗi commit tạo ra digest mới |

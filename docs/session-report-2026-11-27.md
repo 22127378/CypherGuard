@@ -125,16 +125,24 @@ Cả hai đã được đưa vào `scripts/scan.sh detection`, nên CI sẽ ch�
 | Lab stack | **Đã destroy sạch**, kiểm tra trực tiếp qua EC2/EKS/Lambda API |
 | Bootstrap (S3 state, DynamoDB lock, ECR, OIDC roles) | Giữ nguyên theo thiết kế |
 | Chi phí phiên | Khoảng 3 giờ lab — ước tính $1.5–2 |
-| Git | Mọi bản sửa và evidence đã commit trên `main` (chưa push) |
+| Git | Mọi bản sửa và evidence đã commit và **đã push** lên GitHub (`origin/main`) |
 
 Lưu ý: trong lúc test, script Active Response được vá trực tiếp lên node đang chạy, và Lambda cùng IAM policy được apply có target. Mọi thay đổi đều đã có trong code, nên lần deploy sau sẽ dùng bản đã sửa ngay từ đầu.
+
+### 6.1. Sau khi push lên GitHub
+
+- Trước khi push, chạy gitleaks trên toàn bộ lịch sử: 52 commit, không có secret.
+- Lượt chạy đầu của workflow `security` fail ở Checkov (`CKV_AWS_115`, Lambda không giới hạn concurrency). Đây là hệ quả của lỗi #2 hôm qua: mình bỏ `reserved_concurrent_executions` vì tài khoản từ chối. Đã thêm một skip kèm lý do theo quy ước của repo, chạy lại cả 7 gate trên máy (đều pass), và push lại (commit `5548834`).
+- Dependabot đã mở 3 nhánh cập nhật. Riêng `terraform-aws-modules/eks` 21.30 là bản major, nên chưa merge (xem mục 7).
+- Kết quả workflow `build` (push image, ký Cosign) chưa được xác nhận.
 
 ## 7. Kết luận và việc cần làm tiếp
 
 **Đạt được:** vấn đề tồn đọng từ hôm qua đã có nguyên nhân gốc được chứng minh trên hạ tầng thật, đã được sửa và đo lại: không mất alert, kể cả khi restart manager. Toàn bộ chuỗi phát hiện → phản ứng (Falco → Wazuh → Active Response → kill container, và GuardDuty → EventBridge → Lambda → cô lập role) chạy được từ đầu đến cuối. Phần lớn các lỗi hôm nay (#10, #12, #13, #14, #16, #17, #18) **chỉ lộ ra khi chạy thật**: test offline trước đó đều pass. Hai lỗi #13 và #17 là loại tệ nhất cho một hệ thống phản ứng tự động: chúng làm hại chính hạ tầng nó cần bảo vệ.
 
 **Còn lại:**
-1. Push repo lên GitHub để CI ký image bằng Cosign. Hiện image chưa ký nên ở chế độ enforce không deploy được pod mới, chỉ giữ được pod cũ.
+1. Xác nhận workflow `security` xanh và `build` ký được image bằng Cosign, rồi deploy image đã ký ở chế độ enforce. Hiện image chưa ký, nên ở chế độ enforce không deploy được pod mới, chỉ giữ được pod cũ.
 2. Chạy baseline 24 giờ để đo false positive. Ứng viên tinh chỉnh đầu tiên: rule 100205 báo mỗi lần Falco rollout.
 3. Test RBAC chặn `exec` của developer (bước 1), và các kịch bản roadmap A, C, E, F.
 4. Thêm một test offline chạy `apply.sh` trong container manager, để bắt các lỗi kiểu #11 trước khi deploy.
+5. Thử module EKS 21.x (Dependabot) trên một lần deploy riêng trước khi merge. Bản này có thể đổi cách xử lý user data của node, đúng chỗ đã gây ra lỗi #4 và #10.
