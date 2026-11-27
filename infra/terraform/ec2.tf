@@ -71,6 +71,25 @@ data "aws_iam_policy_document" "wazuh" {
     ]
   }
 
+  # GuardDuty findings arrive in their own log group (EventBridge target).
+  # Found live: without this, Wazuh's DescribeLogStreams on it was denied
+  # every poll and no GuardDuty finding ever reached Wazuh.
+  dynamic "statement" {
+    for_each = var.enable_guardduty ? [1] : []
+    content {
+      sid = "ReadGuardDutyLogs"
+      actions = [
+        "logs:DescribeLogStreams",
+        "logs:GetLogEvents",
+        "logs:FilterLogEvents",
+      ]
+      resources = [
+        aws_cloudwatch_log_group.guardduty[0].arn,
+        "${aws_cloudwatch_log_group.guardduty[0].arn}:*",
+      ]
+    }
+  }
+
   # Read CloudTrail logs from S3 (phase 5).
   dynamic "statement" {
     for_each = var.enable_cloudtrail ? [1] : []
