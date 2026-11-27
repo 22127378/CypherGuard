@@ -17,7 +17,7 @@ NS="demo"
 REGION="${AWS_REGION:-ap-southeast-1}"
 ROOT="$(git rev-parse --show-toplevel)"
 
-POD="$(kubectl -n "$NS" get pod -l app.kubernetes.io/name=demo-app -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)"
+POD="$(kubectl -n "$NS" get pod -l app.kubernetes.io/name=demo-app --field-selector=status.phase=Running -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)"
 [ -n "$POD" ] || { echo "demo-app pod not found; run 'make deploy' first" >&2; exit 1; }
 
 ATTACKER_IP="$(terraform -chdir="$ROOT/infra/terraform" output -raw attacker_private_ip 2>/dev/null || true)"

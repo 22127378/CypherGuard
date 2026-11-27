@@ -18,7 +18,7 @@ INSTANCE="$(aws ec2 describe-instances --region "$REGION" \
   --query 'Reservations[0].Instances[0].InstanceId' --output text)"
 [[ "$INSTANCE" == i-* ]] || { echo "Wazuh instance not found" >&2; exit 1; }
 
-POD="$(kubectl -n "$NS" get pod -l app.kubernetes.io/name=demo-app -o jsonpath='{.items[0].metadata.name}')"
+POD="$(kubectl -n "$NS" get pod -l app.kubernetes.io/name=demo-app --field-selector=status.phase=Running -o jsonpath='{.items[0].metadata.name}')"
 START="$(date -u +%s)"
 END=$(( START + DURATION ))
 echo "Baseline for ${DURATION}s. Generating normal traffic to demo-app ..."

@@ -16,7 +16,7 @@ fail() { echo "FAIL  $*"; fails=$((fails + 1)); }
 # ---------- workload health ----------
 kubectl -n "$NS" rollout status deploy/demo-app --timeout=120s >/dev/null && pass "demo-app rolled out" || fail "demo-app not ready"
 
-POD="$(kubectl -n "$NS" get pod -l app.kubernetes.io/name=demo-app -o jsonpath='{.items[0].metadata.name}')"
+POD="$(kubectl -n "$NS" get pod -l app.kubernetes.io/name=demo-app --field-selector=status.phase=Running -o jsonpath='{.items[0].metadata.name}')"
 
 # ---------- no static credentials, no API token ----------
 vols="$(kubectl -n "$NS" get pod "$POD" -o jsonpath='{.spec.volumes[*].name}')"

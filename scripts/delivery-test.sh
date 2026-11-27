@@ -13,7 +13,7 @@ ROOT="$(git rev-parse --show-toplevel)"
 RULE_NAME="CipherGuard Escape Tooling In Container"
 RULE_ID="100114"
 
-POD="$(kubectl -n demo get pod -l app.kubernetes.io/name=demo-app -o jsonpath='{.items[0].metadata.name}')"
+POD="$(kubectl -n demo get pod -l app.kubernetes.io/name=demo-app --field-selector=status.phase=Running -o jsonpath='{.items[0].metadata.name}')"
 NODE="$(kubectl -n demo get pod "$POD" -o jsonpath='{.spec.nodeName}')"
 FALCO="$(kubectl -n falco get pod -l app.kubernetes.io/name=falco --field-selector "spec.nodeName=$NODE" -o jsonpath='{.items[0].metadata.name}')"
 INSTANCE="$(aws ec2 describe-instances --region "$REGION" \
