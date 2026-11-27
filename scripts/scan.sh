@@ -147,7 +147,8 @@ JSON
     /var/ossec/bin/wazuh-modulesd -t
     /var/ossec/bin/wazuh-db
     /var/ossec/bin/wazuh-analysisd
-    /var/ossec/framework/python/bin/python3 /tests/logtest.py /tests/cases.json'
+    /var/ossec/framework/python/bin/python3 /tests/logtest.py /tests/cases.json
+    /var/ossec/framework/python/bin/python3 /tests/ar_test.py'
 }
 
 image() {

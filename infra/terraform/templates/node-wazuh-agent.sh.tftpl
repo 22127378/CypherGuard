@@ -37,7 +37,7 @@ WAZUH_AGENT_NAME="$(hostname -s)" \
 sed -i 's/^enabled=1/enabled=0/' /etc/yum.repos.d/wazuh.repo
 
 # Active Response script: isolates a pod's container on this node when the
-# manager triggers it (prevent run only). crictl ships with the AL2023 node AMI.
+# manager triggers it (prevent run only). It uses ctr: crictl is not on AL2023.
 install -d -o root -g wazuh -m 0750 /var/ossec/active-response/bin
 cat > /var/ossec/active-response/bin/cipherguard-isolate.sh <<'ARSCRIPT'
 ${ar_script}

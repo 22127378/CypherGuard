@@ -30,7 +30,15 @@ try:
     if isinstance(alert, str):
         alert = json.loads(alert)
     data = alert.get("data", {}) if isinstance(alert, dict) else {}
-    cid = data.get("output_fields", {}).get("container.id", "") if isinstance(data, dict) else ""
+    of = data.get("output_fields", {}) if isinstance(data, dict) else {}
+    # Wazuh splits dotted JSON keys into nested objects when it writes the
+    # alert: Falco "container.id" arrives as {"container": {"id": ...}}.
+    # (Confirmed with wazuh-manager 4.14.10 logtest; the flat lookup a prior
+    # version used always came back empty, live.) Flat key kept as fallback.
+    cont = of.get("container", {}) if isinstance(of, dict) else {}
+    cid = cont.get("id", "") if isinstance(cont, dict) else ""
+    if not cid and isinstance(of, dict):
+        cid = of.get("container.id", "")
     print(f"OK\t{ar_command}\t{cid}")
 except Exception as e:
     print(f"PARSEFAIL\t{type(e).__name__}: {e}")
