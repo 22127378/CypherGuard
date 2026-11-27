@@ -6,13 +6,12 @@
 #   scripts/wazuh-sync.sh --wait     retry for up to 20 min while the manager installs
 #   scripts/wazuh-sync.sh --ar       also enable Active Response (prevent run only)
 #
-# KNOWN ISSUE (found live, not yet fixed): each sync restarts wazuh-manager.
-# Running this repeatedly in quick succession has been observed to leave node
-# agents stuck "Disconnected" until their wazuh-agent service is restarted
-# (e.g. via a privileged kube-system pod chrooted into the host, since nodes
-# have no SSM agent). Avoid calling this more than once per deploy; if agents
-# end up disconnected, `agent_control -l` on the manager shows it, and
-# restarting wazuh-agent on each node clears it.
+# The manager is restarted only when the synced config actually changed
+# (apply.sh compares a fingerprint), because each restart drops the node agents'
+# connections; found live, repeated restarts left agents "Disconnected". After a
+# restart apply.sh waits for the agents and prints a WARNING naming any that are
+# not Active. Fix for those: restart wazuh-agent on that node (nodes have no SSM
+# agent; use a privileged kube-system pod chrooted into the host).
 set -euo pipefail
 
 REGION="${AWS_REGION:-ap-southeast-1}"

@@ -12,6 +12,15 @@ if [ ! -x "$OSSEC/bin/wazuh-control" ]; then
   exit 3
 fi
 
+# Fingerprint of everything this script manages. The manager is restarted only
+# when it changes: found live, every restart drops the node agents' connections
+# and repeated restarts in a row left them stuck "Disconnected", losing events.
+fingerprint() {
+  cat "$OSSEC/etc/ossec.conf" "$OSSEC"/etc/rules/cipherguard_*.xml \
+      "$OSSEC/etc/shared/eks-nodes/agent.conf" 2>/dev/null | sha256sum | cut -d' ' -f1
+}
+BEFORE="$(fingerprint)"
+
 BACKUP="$(mktemp -d)"
 cp -a "$OSSEC/etc/ossec.conf" "$BACKUP/"
 cp -a "$OSSEC/etc/rules" "$BACKUP/rules"
@@ -47,6 +56,30 @@ fi
 
 "$OSSEC/bin/wazuh-analysisd" -t || restore
 
+rm -rf "$BACKUP"
+
+if [ "$(fingerprint)" = "$BEFORE" ] && systemctl is-active --quiet wazuh-manager; then
+  echo "Configuration unchanged; manager not restarted (agents stay connected)"
+  exit 0
+fi
+
 systemctl restart wazuh-manager
 systemctl is-active --quiet wazuh-manager && echo "Wazuh manager restarted with CipherGuard config"
-rm -rf "$BACKUP"
+
+# Agents reconnect on their own within ~1 min of a restart. Report any that do
+# not, so a deploy never silently runs a test against a disconnected node.
+# (Agent 000 is the manager itself.) Not fatal: there may be no nodes yet.
+for _ in $(seq 1 24); do
+  agents="$("$OSSEC/bin/agent_control" -l 2>/dev/null | grep -E '^ +ID: ' | grep -v 'ID: 000' || true)"
+  down="$(printf '%s\n' "$agents" | grep -v ', Active' | grep -E 'ID: ' || true)"
+  [ -n "$agents" ] && [ -z "$down" ] && break
+  sleep 5
+done
+if [ -z "$agents" ]; then
+  echo "No node agents enrolled yet"
+elif [ -n "$down" ]; then
+  echo "WARNING: node agents not Active after restart (restart wazuh-agent on these nodes):"
+  printf '%s\n' "$down"
+else
+  echo "All node agents Active: $(printf '%s\n' "$agents" | wc -l)"
+fi
