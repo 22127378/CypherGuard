@@ -82,7 +82,13 @@ while :; do
     --document-name AWS-RunShellScript --comment "cipherguard wazuh-sync" \
     --parameters "file://$STAGE/params.json" --query Command.CommandId --output text 2>/dev/null || true)"
   if [ -n "$CMD_ID" ]; then
-    aws ssm wait command-executed --region "$REGION" --command-id "$CMD_ID" --instance-id "$INSTANCE" 2>/dev/null || true
+    # Poll instead of `aws ssm wait` (gives up after ~100 s): apply.sh may wait
+    # up to 2 min for agents after a restart, which was reported as a failure.
+    for _ in $(seq 1 60); do
+      s="$(aws ssm get-command-invocation --region "$REGION" --command-id "$CMD_ID" \
+        --instance-id "$INSTANCE" --query Status --output text 2>/dev/null || echo Pending)"
+      case "$s" in Pending|InProgress|Delayed) sleep 5 ;; *) break ;; esac
+    done
     read -r STATUS RC < <(aws ssm get-command-invocation --region "$REGION" --command-id "$CMD_ID" \
       --instance-id "$INSTANCE" --query '[Status,ResponseCode]' --output text)
     aws ssm get-command-invocation --region "$REGION" --command-id "$CMD_ID" --instance-id "$INSTANCE" \

@@ -16,8 +16,9 @@ fi
 # when it changes: found live, every restart drops the node agents' connections
 # and repeated restarts in a row left them stuck "Disconnected", losing events.
 fingerprint() {
-  cat "$OSSEC/etc/ossec.conf" "$OSSEC"/etc/rules/cipherguard_*.xml \
-      "$OSSEC/etc/shared/eks-nodes/agent.conf" 2>/dev/null | sha256sum | cut -d' ' -f1
+  # Files may not exist yet on a fresh manager; that must not trip set -e.
+  { cat "$OSSEC/etc/ossec.conf" "$OSSEC"/etc/rules/cipherguard_*.xml \
+        "$OSSEC/etc/shared/eks-nodes/agent.conf" 2>/dev/null || true; } | sha256sum | cut -d' ' -f1
 }
 BEFORE="$(fingerprint)"
 
