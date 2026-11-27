@@ -11,7 +11,7 @@ data "aws_ecr_repository" "demo_app" {
 module "demo_app_irsa" {
   #checkov:skip=CKV_TF_1:Registry module pinned by version constraint; Dependabot tracks updates
   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
-  version = "~> 5.48"
+  version = "~> 6.11"
 
   role_name = "${local.name}-demo-app"
 
@@ -52,7 +52,7 @@ resource "aws_ssm_parameter" "demo_app_greeting" {
 module "kyverno_irsa" {
   #checkov:skip=CKV_TF_1:Registry module pinned by version constraint; Dependabot tracks updates
   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
-  version = "~> 5.48"
+  version = "~> 6.11"
 
   role_name = "${local.name}-kyverno"
 
