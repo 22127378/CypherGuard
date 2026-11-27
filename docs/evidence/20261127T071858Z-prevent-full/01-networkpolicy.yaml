@@ -1,0 +1,87 @@
+apiVersion: v1
+items:
+- apiVersion: networking.k8s.io/v1
+  kind: NetworkPolicy
+  metadata:
+    annotations:
+      meta.helm.sh/release-name: demo-app
+      meta.helm.sh/release-namespace: demo
+    creationTimestamp: "2026-11-27T04:52:15Z"
+    finalizers:
+    - networking.k8s.aws/resources
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: demo-app
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: demo-app
+      app.kubernetes.io/part-of: cipherguard
+      app.kubernetes.io/version: 0.1.0
+    name: default-deny-all
+    namespace: demo
+    resourceVersion: "4199"
+    uid: db0a843a-2321-48ef-aa9a-d16f07cb3820
+  spec:
+    podSelector: {}
+    policyTypes:
+    - Ingress
+    - Egress
+- apiVersion: networking.k8s.io/v1
+  kind: NetworkPolicy
+  metadata:
+    annotations:
+      meta.helm.sh/release-name: demo-app
+      meta.helm.sh/release-namespace: demo
+    creationTimestamp: "2026-11-27T04:52:15Z"
+    finalizers:
+    - networking.k8s.aws/resources
+    generation: 2
+    labels:
+      app.kubernetes.io/instance: demo-app
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: demo-app
+      app.kubernetes.io/part-of: cipherguard
+      app.kubernetes.io/version: 0.1.0
+      cipherguard.io/network-mode: enforce
+    name: demo-app
+    namespace: demo
+    resourceVersion: "9483"
+    uid: 38c97a89-2512-485d-a742-92aa27bae78f
+  spec:
+    egress:
+    - ports:
+      - port: 53
+        protocol: UDP
+      - port: 53
+        protocol: TCP
+      to:
+      - namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: kube-system
+        podSelector:
+          matchLabels:
+            k8s-app: kube-dns
+    - ports:
+      - port: 443
+        protocol: TCP
+      to:
+      - ipBlock:
+          cidr: 0.0.0.0/0
+          except:
+          - 10.20.0.0/16
+          - 169.254.169.254/32
+    ingress:
+    - from:
+      - podSelector: {}
+      ports:
+      - port: 8080
+        protocol: TCP
+    podSelector:
+      matchLabels:
+        app.kubernetes.io/instance: demo-app
+        app.kubernetes.io/name: demo-app
+    policyTypes:
+    - Ingress
+    - Egress
+kind: List
+metadata:
+  resourceVersion: ""

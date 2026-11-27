@@ -1,0 +1,13 @@
+ok    demo-app rolled out
+ok    no Kubernetes API token mounted
+ok    IRSA role injected
+ok    no static AWS keys in env
+ok    running by digest
+ok    /healthz 200
+ok    IRSA -> SSM works: {"greeting": "hello from CipherGuard"}
+ok    image from another registry (unsigned) rejected
+ok    privileged pod rejected
+ok    hostPath mount of / rejected
+ok    cluster-admin bound to a ServiceAccount rejected
+
+smoke test passed (enforce)

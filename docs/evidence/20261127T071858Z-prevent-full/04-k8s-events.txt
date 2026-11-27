@@ -1,0 +1,34 @@
+NAMESPACE   LAST SEEN   TYPE      REASON             OBJECT                                                   MESSAGE
+default     14m         Warning   PolicyViolation    validatingpolicy/deny-cluster-admin-to-serviceaccounts   ClusterRoleBinding cg-smoke-escalate: [validation] fail (blocked); cluster-admin may not be bound to a ServiceAccount
+default     15m         Warning   PolicyViolation    validatingpolicy/pod-security-baseline                   Pod default/cg-smoke-priv: [validation] fail (blocked); privileged containers are not allowed
+default     15m         Warning   PolicyViolation    validatingpolicy/pod-security-baseline                   Pod default/cg-smoke-hostpath: [validation] fail (blocked); hostPath volumes are not allowed
+default     14m         Warning   PolicyViolation    validatingpolicy/pod-security-baseline                   Pod default/cg-smoke-priv: [validation] fail (blocked); privileged containers are not allowed
+default     14m         Warning   PolicyViolation    validatingpolicy/pod-security-baseline                   Pod default/cg-smoke-hostpath: [validation] fail (blocked); hostPath volumes are not allowed
+default     15m         Warning   PolicyViolation    validatingpolicy/restrict-image-registries               Pod demo/cg-smoke-unsigned: [validation] fail (blocked); Images in app namespaces must come from 728384804953.dkr.ecr.ap-southeast-1.amazonaws.com/cipherguard/demo-app.
+default     14m         Warning   PolicyViolation    validatingpolicy/restrict-image-registries               Pod demo/cg-smoke-unsigned: [validation] fail (blocked); Images in app namespaces must come from 728384804953.dkr.ecr.ap-southeast-1.amazonaws.com/cipherguard/demo-app.
+default     15m         Warning   PolicyViolation    validatingpolicy/deny-cluster-admin-to-serviceaccounts   ClusterRoleBinding cg-smoke-escalate: [validation] fail (blocked); cluster-admin may not be bound to a ServiceAccount
+falco       9m39s       Normal    SuccessfulDelete   daemonset/falco                                          Deleted pod: falco-ggwn2
+falco       9m39s       Normal    Killing            pod/falco-ggwn2                                          Stopping container falco
+falco       9m37s       Normal    SuccessfulCreate   daemonset/falco                                          Created pod: falco-nsnpj
+falco       9m37s       Normal    Scheduled          pod/falco-nsnpj                                          Successfully assigned falco/falco-nsnpj to ip-10-20-3-151.ap-southeast-1.compute.internal
+falco       9m36s       Normal    Started            pod/falco-nsnpj                                          Started container falcoctl-artifact-install
+falco       9m36s       Normal    Created            pod/falco-nsnpj                                          Created container: falcoctl-artifact-install
+falco       9m36s       Normal    Pulled             pod/falco-nsnpj                                          Container image "docker.io/falcosecurity/falcoctl:0.14.3" already present on machine
+falco       9m18s       Normal    Started            pod/falco-nsnpj                                          Started container falco
+falco       9m18s       Normal    Created            pod/falco-nsnpj                                          Created container: falco
+falco       9m18s       Normal    Pulled             pod/falco-nsnpj                                          Container image "docker.io/falcosecurity/falco:0.45.2" already present on machine
+falco       9m12s       Normal    Killing            pod/falco-f2qvc                                          Stopping container falco
+falco       9m12s       Normal    SuccessfulDelete   daemonset/falco                                          Deleted pod: falco-f2qvc
+falco       9m10s       Normal    Scheduled          pod/falco-jtfm2                                          Successfully assigned falco/falco-jtfm2 to ip-10-20-19-146.ap-southeast-1.compute.internal
+falco       9m10s       Normal    SuccessfulCreate   daemonset/falco                                          Created pod: falco-jtfm2
+falco       9m9s        Normal    Pulled             pod/falco-jtfm2                                          Container image "docker.io/falcosecurity/falcoctl:0.14.3" already present on machine
+falco       9m9s        Normal    Started            pod/falco-jtfm2                                          Started container falcoctl-artifact-install
+falco       9m9s        Normal    Created            pod/falco-jtfm2                                          Created container: falcoctl-artifact-install
+falco       8m51s       Normal    Started            pod/falco-jtfm2                                          Started container falco
+falco       8m51s       Normal    Created            pod/falco-jtfm2                                          Created container: falco
+falco       8m51s       Normal    Pulled             pod/falco-jtfm2                                          Container image "docker.io/falcosecurity/falco:0.45.2" already present on machine
+demo        7m37s       Warning   BackOff            pod/demo-app-745495db99-tkfwp                            Back-off restarting failed container demo-app in pod demo-app-745495db99-tkfwp_demo(f242c7ca-a56a-47c7-9d29-0c9d6651a5a9)
+demo        7m24s       Normal    Started            pod/demo-app-745495db99-tkfwp                            Started container demo-app
+demo        7m24s       Normal    Created            pod/demo-app-745495db99-tkfwp                            Created container: demo-app
+demo        7m24s       Normal    Pulled             pod/demo-app-745495db99-tkfwp                            Container image "728384804953.dkr.ecr.ap-southeast-1.amazonaws.com/cipherguard/demo-app@sha256:93f5915a06ffe3e2993961c8e6db790bec8119902cb0e167b28a6e212e4e4deb" already present on machine
+demo        7m23s       Warning   Unhealthy          pod/demo-app-745495db99-tkfwp                            Readiness probe failed: Get "http://10.20.28.116:8080/healthz": dial tcp 10.20.28.116:8080: connect: connection refused

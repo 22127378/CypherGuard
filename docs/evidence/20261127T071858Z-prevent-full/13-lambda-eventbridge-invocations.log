@@ -1,0 +1,5 @@
+[ERROR] NoSuchEntityException: An error occurred (NoSuchEntity) when calling the UpdateAccessKey operation: The user with name GeneratedFindingUserName cannot be found.
+{"finding": "UnauthorizedAccess:IAMUser/InstanceCredentialExfiltration.OutsideAWS", "severity": 8, "principal": "cipherguard-demo-app", "actions": ["attached CipherGuardQuarantine deny policy to cipherguard-demo-app"]}
+[ERROR] NoSuchEntityException: An error occurred (NoSuchEntity) when calling the UpdateAccessKey operation: The user with name GeneratedFindingUserName cannot be found.
+{"finding": "UnauthorizedAccess:IAMUser/InstanceCredentialExfiltration.OutsideAWS", "severity": 8, "principal": "GeneratedFindingUserName", "actions": ["skip user GeneratedFindingUserName (not an in-scope lab user)"]}
+{"finding": "UnauthorizedAccess:IAMUser/InstanceCredentialExfiltration.OutsideAWS", "severity": 8, "principal": "GeneratedFindingUserName", "actions": ["skip user GeneratedFindingUserName (not an in-scope lab user)"]}

@@ -1,0 +1,34 @@
+Target pod: demo-app-745495db99-tkfwp   mode: enforce   attacker: 10.20.48.208
+Watch Wazuh: Threat Hunting > Events, filter rule.groups: cipherguard
+
+[14:05:28] === Step 1 foothold: shell in container (Falco 100110, audit 100202) ===
+    shell active as app in demo-app-745495db99-tkfwp
+
+[14:05:30] === Step 2 discovery: read tokens, hit the API (Falco 100112/100111, audit 100203) ===
+    ls: cannot access '/var/run/secrets/kubernetes.io/serviceaccount/': No such file or directory
+    ---
+    eyJhbGciOiJSUzI1NiIsImtpZCI6IjcyNDFhNjNl
+    AWS_ROLE_ARN=arn:aws:iam::728384804953:role/cipherguard-demo-app
+    urllib.error.HTTPError: HTTP Error 401: Unauthorized
+
+[14:05:34] === Scenario D: contact IMDS for node credentials (Falco 100113, CRITICAL) ===
+    command terminated with exit code 137
+
+[14:05:37] === Step 3 escalation: use pod IAM role for denied AWS calls (CloudTrail 100300) ===
+    botocore.errorfactory.AccessDenied: An error occurred (AccessDenied) when calling the ListBuckets operation: User: arn:aws:sts::728384804953:assumed-role/cipherguard-demo-app/botocore-session-1795763141 is not authorized to perform: s3:ListAllMyBuckets because no identity-based policy allows the s3:ListAllMyBuckets action
+    botocore.exceptions.ClientError: An error occurred (AccessDenied) when calling the ListUsers operation: User: arn:aws:sts::728384804953:assumed-role/cipherguard-demo-app/botocore-session-1795763146 is not authorized to perform: iam:ListUsers on resource: arn:aws:iam::728384804953:user/ because no identity-based policy allows the iam:ListUsers action. Go to https://us-east-1.console.aws.amazon.com/iam/home?region=us-east-1#/authorization-details/4ge2e17bwby1jso1i4evm7635 for complete details, or call the GetRequestAuthorizationDetails API with the following authorization id: 4ge2e17bwby1jso1i4evm7635
+
+[14:05:48] === Scenario B: escape tooling in container (Falco 100114, CRITICAL) ===
+    nsenter: reassociate to namespaces failed: Operation not permitted
+    (nsenter attempt)
+
+[14:05:51] === Scenario G: run dropped binary from /tmp, wipe history (Falco 100115/100116) ===
+    error: Internal error occurred: unable to upgrade connection: container not found ("demo-app")
+
+[14:05:52] === Step 4 exfiltration: read /data, encrypt, send to attacker (Falco 100119/100120, correlation 100130) ===
+    error: Internal error occurred: unable to upgrade connection: container not found ("demo-app")
+    python: can't open file '/tmp/exfil.py': [Errno 2] No such file or directory
+    command terminated with exit code 2
+
+Prevent run: expect IMDS/API/egress blocked and the pod possibly isolated by Active Response.
+Check:  kubectl -n demo get pod demo-app-745495db99-tkfwp   (container may have been restarted)

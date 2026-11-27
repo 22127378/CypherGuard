@@ -1,0 +1,1 @@
+{"finding": "UnauthorizedAccess:IAMUser/InstanceCredentialExfiltration.OutsideAWS", "severity": 8, "principal": "cipherguard-demo-app", "actions": ["attached CipherGuardQuarantine deny policy to cipherguard-demo-app"]}
