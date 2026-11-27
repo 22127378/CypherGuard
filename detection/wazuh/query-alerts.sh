@@ -5,9 +5,10 @@
 #
 #   query-alerts.sh first  <since_epoch>   earliest alert per cipherguard rule (TSV)
 #   query-alerts.sh crit   <since_epoch>   count alerts at level >= 12 (baseline FP check)
+#   query-alerts.sh count  <since_epoch>   number of alerts per cipherguard rule (TSV)
 set -euo pipefail
 
-MODE="${1:?first|crit}"
+MODE="${1:?first|crit|count}"
 SINCE="${2:?since epoch}"
 ALERTS=/var/ossec/logs/alerts/alerts.json
 PY=/var/ossec/framework/python/bin/python3
@@ -29,6 +30,7 @@ def epoch(ts: str) -> float:
         return 0.0
 
 first = {}   # rule_id -> (epoch, level)
+count = {}   # rule_id -> number of alerts
 crit = 0
 with open(path, errors="replace") as fh:
     for line in fh:
@@ -51,11 +53,15 @@ with open(path, errors="replace") as fh:
                 crit += 1
             continue
         if "cipherguard" in groups or rid.startswith("1001") or rid.startswith("1003"):
+            count[rid] = count.get(rid, 0) + 1
             if rid not in first or when < first[rid][0]:
                 first[rid] = (when, level)
 
 if mode == "crit":
     print(crit)
+elif mode == "count":
+    for rid in sorted(count):
+        print(f"{rid}\t{count[rid]}")
 else:
     for rid in sorted(first):
         when, level = first[rid]
