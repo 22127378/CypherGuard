@@ -6,36 +6,17 @@
 #   scripts/measure-latency.sh            run the chain, then measure
 #   scripts/measure-latency.sh --no-run   measure against a chain you already ran
 set -uo pipefail
+. "$(git rev-parse --show-toplevel)/scripts/lib/common.sh"
 
-REGION="${AWS_REGION:-ap-southeast-1}"
-PROJECT="cipherguard"
-ROOT="$(git rev-parse --show-toplevel)"
 RUN=1
 [ "${1:-}" = "--no-run" ] && RUN=0
 WAIT="${CG_WAIT:-80}"
+INSTANCE="$(wazuh_instance)" || exit 1
 
-INSTANCE="$(aws ec2 describe-instances --region "$REGION" \
-  --filters "Name=tag:Name,Values=$PROJECT-wazuh" "Name=instance-state-name,Values=running" \
-  --query 'Reservations[0].Instances[0].InstanceId' --output text)"
-[[ "$INSTANCE" == i-* ]] || { echo "Wazuh instance not found" >&2; exit 1; }
-
-# Run query-alerts.sh on the manager over SSM and print its stdout.
-query() {
-  local mode="$1" since="$2" b64 cmd id
-  b64="$(base64 -w0 "$ROOT/detection/wazuh/query-alerts.sh")"
-  cmd="echo '$b64' | base64 -d > /tmp/cg-query.sh; bash /tmp/cg-query.sh $mode $since"
-  id="$(aws ssm send-command --region "$REGION" --instance-ids "$INSTANCE" \
-    --document-name AWS-RunShellScript --parameters "commands=[\"$cmd\"]" \
-    --query Command.CommandId --output text)"
-  aws ssm wait command-executed --region "$REGION" --command-id "$id" --instance-id "$INSTANCE" 2>/dev/null || true
-  aws ssm get-command-invocation --region "$REGION" --command-id "$id" \
-    --instance-id "$INSTANCE" --query StandardOutputContent --output text
-}
-
-START="$(date -u +%s)"
+START="$(now)"
 if [ "$RUN" = 1 ]; then
   echo "Starting detect-only attack chain at epoch $START ..."
-  "$ROOT/attack/run-attack.sh" --mode detect >/tmp/cg-attack.log 2>&1 || true
+  "$ROOT/attack/run-attack.sh" --mode detect >"$CG_LOG_DIR/cg-attack.log" 2>&1 || true
   echo "Chain done; waiting ${WAIT}s for audit-log poll + indexing ..."
   sleep "$WAIT"
 fi
@@ -64,7 +45,7 @@ while IFS=$'\t' read -r rid level ts; do
   if [ "$lat" -le "$target" ]; then verdict="ok (<=${target}s)"; pass=$((pass+1));
   else verdict="MISS (>${target}s)"; miss=$((miss+1)); fi
   printf '%-28s %-6s %-9s %s\n' "$name" "$level" "${lat}s" "$verdict"
-done < <(query first "$START")
+done < <(wazuh_query "$INSTANCE" first "$START")
 
 echo
 echo "within target: $pass   over target: $miss"

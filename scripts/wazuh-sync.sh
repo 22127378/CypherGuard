@@ -13,91 +13,61 @@
 # not Active. Fix for those: restart wazuh-agent on that node (nodes have no SSM
 # agent; use a privileged kube-system pod chrooted into the host).
 set -euo pipefail
+. "$(git rev-parse --show-toplevel)/scripts/lib/wazuh.sh"
 
-REGION="${AWS_REGION:-ap-southeast-1}"
-PROJECT="cipherguard"
-ROOT="$(git rev-parse --show-toplevel)"
 WAIT=0
 AR=0
 for a in "$@"; do
   case "$a" in
     --wait) WAIT=1 ;;
     --ar) AR=1 ;;
+    *) die "unknown argument: $a" ;;
   esac
 done
 
-ACCOUNT="$(aws sts get-caller-identity --query Account --output text)"
-INSTANCE="$(aws ec2 describe-instances --region "$REGION" \
-  --filters "Name=tag:Name,Values=$PROJECT-wazuh" "Name=instance-state-name,Values=running" \
-  --query 'Reservations[0].Instances[0].InstanceId' --output text)"
-[[ "$INSTANCE" == i-* ]] || { echo "Wazuh instance not found (is the lab up?)" >&2; exit 1; }
-
-NAT_EIP="$(aws ec2 describe-nat-gateways --region "$REGION" \
+ACCOUNT="$(aws_account)"
+INSTANCE="$(wazuh_instance)" || exit 1
+NAT_EIP="$(aws ec2 describe-nat-gateways \
   --filter "Name=tag:Project,Values=CipherGuard" "Name=state,Values=available" \
   --query 'NatGateways[0].NatGatewayAddresses[0].PublicIp' --output text)"
-BUCKET="$PROJECT-cloudtrail-$ACCOUNT"
-LOG_GROUP="/aws/eks/$PROJECT-eks/cluster"
-GUARDDUTY_LOG_GROUP="/$PROJECT/guardduty"
 
-STAGE="$(mktemp -d)"
-trap 'rm -rf "$STAGE"' EXIT
-cp -r "$ROOT/detection/wazuh/." "$STAGE/"
-NAT_RE="${NAT_EIP//./\\\\.}"
-sed -i "s/__NAT_EIP__/$NAT_RE/g" "$STAGE"/rules/*.xml
-sed -i -e "s|__REGION__|$REGION|g" -e "s|__EKS_LOG_GROUP__|$LOG_GROUP|g" \
-       -e "s|__CLOUDTRAIL_BUCKET__|$BUCKET|g" -e "s|__GUARDDUTY_LOG_GROUP__|$GUARDDUTY_LOG_GROUP|g" \
-       "$STAGE/ossec-aws.xml"
-if ! aws s3api head-bucket --bucket "$BUCKET" >/dev/null 2>&1; then
+# Drop the inputs whose AWS resource is not in this lab (feature flags off).
+opts=()
+if ! aws s3api head-bucket --bucket "$(cloudtrail_bucket "$ACCOUNT")" >/dev/null 2>&1; then
   echo "No lab CloudTrail bucket; CloudTrail input disabled."
-  sed -i '/cipherguard:cloudtrail:begin/,/cipherguard:cloudtrail:end/d' "$STAGE/ossec-aws.xml"
+  opts+=(--no-cloudtrail)
 fi
-if ! aws logs describe-log-groups --region "$REGION" --log-group-name-prefix "$GUARDDUTY_LOG_GROUP" \
+if ! aws logs describe-log-groups --log-group-name-prefix "$GUARDDUTY_LOG_GROUP" \
      --query 'logGroups[0].logGroupName' --output text 2>/dev/null | grep -q "$GUARDDUTY_LOG_GROUP"; then
   echo "No GuardDuty log group; GuardDuty input disabled."
-  sed -i '/cipherguard:guardduty:begin/,/cipherguard:guardduty:end/d' "$STAGE/ossec-aws.xml"
+  opts+=(--no-guardduty)
 fi
-
-# AR is opt-in: apply.sh merges ossec-ar.xml only when it is in the bundle.
-if [ "$AR" = 0 ]; then
-  rm -f "$STAGE/ossec-ar.xml"
-  echo "Active Response: off (detect-only)"
-else
+if [ "$AR" = 1 ]; then
   echo "Active Response: on (prevent run)"
+else
+  echo "Active Response: off (detect-only)"
+  opts+=(--no-ar)
 fi
 
-BUNDLE="$(tar czf - -C "$STAGE" . | base64 -w0)"
+make_tmpdir STAGE
+wazuh_render "$STAGE/bundle" "$NAT_EIP" "$ACCOUNT" "${opts[@]}"
+BUNDLE="$(tar czf - -C "$STAGE/bundle" . | base64 -w0)"
 echo "Bundle: ${#BUNDLE} bytes (NAT EIP $NAT_EIP, instance $INSTANCE)"
+CMD="set -e; d=\$(mktemp -d); echo '$BUNDLE' | base64 -d | tar xz -C \"\$d\"; bash \"\$d/apply.sh\"; rc=\$?; rm -rf \"\$d\"; exit \$rc"
 
-python3 -I - "$BUNDLE" >"$STAGE/params.json" <<'PY'
-import json, sys
-b = sys.argv[1]
-cmd = ("set -e; d=$(mktemp -d); echo '" + b + "' | base64 -d | tar xz -C \"$d\"; "
-       "bash \"$d/apply.sh\"; rc=$?; rm -rf \"$d\"; exit $rc")
-print(json.dumps({"commands": [cmd]}))
-PY
-
-deadline=$(( $(date +%s) + 1200 ))
+# apply.sh may wait up to 2 min for agents after a restart, hence the timeout.
+deadline=$(( $(now) + 1200 ))
 while :; do
-  CMD_ID="$(aws ssm send-command --region "$REGION" --instance-ids "$INSTANCE" \
-    --document-name AWS-RunShellScript --comment "cipherguard wazuh-sync" \
-    --parameters "file://$STAGE/params.json" --query Command.CommandId --output text 2>/dev/null || true)"
-  if [ -n "$CMD_ID" ]; then
-    # Poll instead of `aws ssm wait` (gives up after ~100 s): apply.sh may wait
-    # up to 2 min for agents after a restart, which was reported as a failure.
-    for _ in $(seq 1 60); do
-      s="$(aws ssm get-command-invocation --region "$REGION" --command-id "$CMD_ID" \
-        --instance-id "$INSTANCE" --query Status --output text 2>/dev/null || echo Pending)"
-      case "$s" in Pending|InProgress|Delayed) sleep 5 ;; *) break ;; esac
-    done
-    read -r STATUS RC < <(aws ssm get-command-invocation --region "$REGION" --command-id "$CMD_ID" \
-      --instance-id "$INSTANCE" --query '[Status,ResponseCode]' --output text)
-    aws ssm get-command-invocation --region "$REGION" --command-id "$CMD_ID" --instance-id "$INSTANCE" \
-      --query '[StandardOutputContent,StandardErrorContent]' --output text
-    [ "$STATUS" = "Success" ] && { echo "wazuh-sync: done"; exit 0; }
-    # 3 = manager still installing; anything else is a real failure.
-    [ "$RC" != "3" ] && { echo "wazuh-sync: failed ($STATUS, rc=$RC)" >&2; exit 1; }
+  if ssm_run "$INSTANCE" "$CMD" 420; then
+    echo "wazuh-sync: done"
+    exit 0
   fi
-  [ "$WAIT" = 1 ] && [ "$(date +%s)" -lt "$deadline" ] || { echo "Wazuh manager not ready" >&2; exit 1; }
+  # rc 3 = manager still installing; SendFailed = SSM agent not up yet.
+  case "$SSM_STATUS/$SSM_RC" in
+    SendFailed/*|*/3) ;;
+    *) die "wazuh-sync: failed ($SSM_STATUS, rc=$SSM_RC)" ;;
+  esac
+  [ "$WAIT" = 1 ] && [ "$(now)" -lt "$deadline" ] || die "Wazuh manager not ready"
   echo "Waiting for the Wazuh manager (SSM agent or install not ready)..."
   sleep 30
 done

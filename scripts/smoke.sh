@@ -4,10 +4,11 @@
 #   scripts/smoke.sh --mode enforce   also proves bad workloads are rejected
 #   scripts/smoke.sh --mode detect    bad workloads must be admitted (audit only)
 set -euo pipefail
+. "$(git rev-parse --show-toplevel)/scripts/lib/common.sh"
 
 MODE="enforce"
 [ "${1:-}" = "--mode" ] && MODE="${2:?}"
-NS="demo"
+check_mode "$MODE"
 fails=0
 
 pass() { echo "ok    $*"; }
@@ -16,7 +17,7 @@ fail() { echo "FAIL  $*"; fails=$((fails + 1)); }
 # ---------- workload health ----------
 kubectl -n "$NS" rollout status deploy/demo-app --timeout=120s >/dev/null && pass "demo-app rolled out" || fail "demo-app not ready"
 
-POD="$(kubectl -n "$NS" get pod -l app.kubernetes.io/name=demo-app --field-selector=status.phase=Running -o jsonpath='{.items[0].metadata.name}')"
+POD="$(require_demo_pod)" || exit 1
 
 # ---------- no static credentials, no API token ----------
 vols="$(kubectl -n "$NS" get pod "$POD" -o jsonpath='{.spec.volumes[*].name}')"
@@ -30,11 +31,7 @@ image="$(kubectl -n "$NS" get pod "$POD" -o jsonpath='{.spec.containers[0].image
 [[ "$image" == *@sha256:* ]] && pass "running by digest" || fail "image not pinned by digest: $image"
 
 # ---------- HTTP through the service ----------
-kubectl -n "$NS" port-forward svc/demo-app 18080:80 >/dev/null 2>&1 &
-pf=$!
-trap 'kill $pf 2>/dev/null || true' EXIT
-for _ in $(seq 1 20); do curl -fs localhost:18080/healthz >/dev/null 2>&1 && break; sleep 0.5; done
-curl -fs localhost:18080/healthz >/dev/null && pass "/healthz 200" || fail "/healthz failed"
+port_forward_demo 18080 && pass "/healthz 200" || fail "/healthz failed"
 body="$(curl -s localhost:18080/ || true)"
 [[ "$body" == *greeting* ]] && pass "IRSA -> SSM works: $body" || fail "app could not read SSM via IRSA: $body"
 

@@ -4,15 +4,11 @@
 #
 #   scripts/collect-evidence.sh <run-label>
 set -uo pipefail
+. "$(git rev-parse --show-toplevel)/scripts/lib/common.sh"
 
 LABEL="${1:?usage: collect-evidence.sh <run-label>}"
-ROOT="$(git rev-parse --show-toplevel)"
-TS="$(date -u +%Y%m%dT%H%M%SZ)"
-OUT="$ROOT/docs/evidence/${TS}-${LABEL}"
+OUT="$ROOT/docs/evidence/$(date -u +%Y%m%dT%H%M%SZ)-${LABEL}"
 mkdir -p "$OUT"
-REGION="${AWS_REGION:-ap-southeast-1}"
-NS="demo"
-
 echo "Collecting evidence into $OUT"
 
 {
@@ -31,39 +27,19 @@ kubectl get validatingpolicies,imagevalidatingpolicies -o yaml > "$OUT/02-kyvern
 kubectl get policyreport,clusterpolicyreport -A -o yaml > "$OUT/03-policyreports.yaml" 2>&1
 kubectl get events -A --sort-by=.lastTimestamp > "$OUT/04-k8s-events.txt" 2>&1
 
-INSTANCE="$(aws ec2 describe-instances --region "$REGION" \
-  --filters "Name=tag:Name,Values=cipherguard-wazuh" "Name=instance-state-name,Values=running" \
-  --query 'Reservations[0].Instances[0].InstanceId' --output text 2>/dev/null)"
-
-if [[ "$INSTANCE" == i-* ]]; then
+INSTANCE="$(instance_id "$PROJECT-wazuh")"
+if [ -n "$INSTANCE" ]; then
   echo "Pulling Active Response log from $INSTANCE ..."
-  CMD_ID="$(aws ssm send-command --region "$REGION" --instance-ids "$INSTANCE" \
-    --document-name AWS-RunShellScript \
-    --parameters 'commands=["tail -n 200 /var/ossec/logs/active-responses.log 2>/dev/null || echo none","echo ---","tail -n 100 /var/ossec/logs/ossec.log 2>/dev/null"]' \
-    --query Command.CommandId --output text 2>/dev/null)"
-  if [ -n "$CMD_ID" ]; then
-    aws ssm wait command-executed --region "$REGION" --command-id "$CMD_ID" --instance-id "$INSTANCE" 2>/dev/null || true
-    aws ssm get-command-invocation --region "$REGION" --command-id "$CMD_ID" --instance-id "$INSTANCE" \
-      --query StandardOutputContent --output text > "$OUT/05-wazuh-manager-logs.txt" 2>&1
-  fi
-
+  ssm_run "$INSTANCE" "tail -n 200 /var/ossec/logs/active-responses.log 2>/dev/null || echo none; echo ---; tail -n 100 /var/ossec/logs/ossec.log 2>/dev/null" \
+    > "$OUT/05-wazuh-manager-logs.txt" 2>&1
   echo "Pulling all CipherGuard alerts from Wazuh manager ..."
-  B64="$(base64 -w0 "$ROOT/detection/wazuh/query-alerts.sh")"
-  CMD="echo '$B64' | base64 -d > /tmp/cg-query.sh; bash /tmp/cg-query.sh first 0"
-  CMD_ID="$(aws ssm send-command --region "$REGION" --instance-ids "$INSTANCE" \
-    --document-name AWS-RunShellScript --parameters "commands=[\"$CMD\"]" \
-    --query Command.CommandId --output text 2>/dev/null)"
-  if [ -n "$CMD_ID" ]; then
-    aws ssm wait command-executed --region "$REGION" --command-id "$CMD_ID" --instance-id "$INSTANCE" 2>/dev/null || true
-    aws ssm get-command-invocation --region "$REGION" --command-id "$CMD_ID" --instance-id "$INSTANCE" \
-      --query StandardOutputContent --output text > "$OUT/06-wazuh-alert-rules.tsv" 2>&1
-  fi
+  wazuh_query "$INSTANCE" first 0 > "$OUT/06-wazuh-alert-rules.tsv" 2>&1
 else
   echo "Wazuh instance not found; skipping manager-side evidence." | tee "$OUT/05-wazuh-manager-logs.txt"
 fi
 
-[ -f /tmp/cg-attack.log ] && cp /tmp/cg-attack.log "$OUT/07-attack-run.log"
-[ -f /tmp/cg-smoke.log ] && cp /tmp/cg-smoke.log "$OUT/08-smoke-test.log"
+[ -f "$CG_LOG_DIR/cg-attack.log" ] && cp "$CG_LOG_DIR/cg-attack.log" "$OUT/07-attack-run.log"
+[ -f "$CG_LOG_DIR/cg-smoke.log" ] && cp "$CG_LOG_DIR/cg-smoke.log" "$OUT/08-smoke-test.log"
 
 echo "Evidence collected:"
 ls -la "$OUT"

