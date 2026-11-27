@@ -36,26 +36,31 @@ def wait_for_socket(timeout=60):
     sys.exit("logtest socket never came up")
 
 
+def process(event, location: str, token=None, origin="cipherguard-tests") -> dict:
+    """Send one event through analysisd's ruleset, as an agent would ship it.
+    `event` is the raw log line, or a dict serialised the way Falco writes it."""
+    params = {
+        "event": event if isinstance(event, str) else json.dumps(event, separators=(",", ":")),
+        "log_format": "syslog",
+        "location": location,
+    }
+    if token:
+        params["token"] = token
+    return call({
+        "version": 1,
+        "origin": {"name": origin, "module": "framework"},
+        "command": "log_processing",
+        "parameters": params,
+    })
+
+
 def main(path):
     cases = json.load(open(path))["cases"]
     wait_for_socket()
     token = None
     failures = 0
     for case in cases:
-        event = case["event"]
-        params = {
-            "event": event if isinstance(event, str) else json.dumps(event, separators=(",", ":")),
-            "log_format": "syslog",
-            "location": case["location"],
-        }
-        if token:
-            params["token"] = token
-        resp = call({
-            "version": 1,
-            "origin": {"name": "cipherguard-tests", "module": "framework"},
-            "command": "log_processing",
-            "parameters": params,
-        })
+        resp = process(case["event"], case["location"], token)
         if resp.get("error"):
             print(f"ERROR {case['name']}: {resp}")
             failures += 1

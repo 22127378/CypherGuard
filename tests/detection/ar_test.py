@@ -39,16 +39,7 @@ FALCO_EVENT = {
 
 
 def real_alert() -> dict:
-    resp = logtest.call({
-        "version": 1,
-        "origin": {"name": "cipherguard-ar-test", "module": "framework"},
-        "command": "log_processing",
-        "parameters": {
-            "event": json.dumps(FALCO_EVENT, separators=(",", ":")),
-            "log_format": "syslog",
-            "location": "/var/log/falco/events.json",
-        },
-    })
+    resp = logtest.process(FALCO_EVENT, "/var/log/falco/events.json", origin="cipherguard-ar-test")
     out = resp["data"]["output"]
     assert out["rule"]["id"] == "100114", out["rule"]["id"]
     return out
