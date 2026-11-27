@@ -25,16 +25,16 @@ output "demo_app_role_arn" {
 }
 
 output "wazuh_instance_id" {
-  value = aws_instance.wazuh.id
+  value = module.wazuh.instance_id
 }
 
 output "wazuh_private_ip" {
-  value = aws_instance.wazuh.private_ip
+  value = module.wazuh.private_ip
 }
 
 output "wazuh_dashboard_tunnel" {
   description = "Open https://localhost:8443 after running this."
-  value       = "aws ssm start-session --region ${var.region} --target ${aws_instance.wazuh.id} --document-name AWS-StartPortForwardingSession --parameters portNumber=443,localPortNumber=8443"
+  value       = "aws ssm start-session --region ${var.region} --target ${module.wazuh.instance_id} --document-name AWS-StartPortForwardingSession --parameters portNumber=443,localPortNumber=8443"
 }
 
 output "wazuh_admin_password_command" {
@@ -42,12 +42,12 @@ output "wazuh_admin_password_command" {
 }
 
 output "attacker_instance_id" {
-  value = aws_instance.attacker.id
+  value = module.attacker.instance_id
 }
 
 output "attacker_private_ip" {
   description = "Exfil target used by the attack scripts (reached from pods inside the VPC)."
-  value       = aws_instance.attacker.private_ip
+  value       = module.attacker.private_ip
 }
 
 output "eks_audit_log_group" {
