@@ -21,6 +21,7 @@ Source: [docs/diagram/cipherguard-architecture.drawio](docs/diagram/cipherguard-
 ```
 infra/bootstrap/   persistent: S3 state, DynamoDB lock, budget, ECR, GitHub OIDC roles
 infra/terraform/   the lab: VPC, EKS, Wazuh, attacker host, IRSA role (destroyed every session)
+  modules/ssm-host/  SSM-only EC2 host (role, profile, IMDSv2, encrypted root), used for Wazuh and attacker
 app/               demo application (attack target)
 charts/demo-app/   Helm chart: digest-only image, IRSA, no API token, PSS restricted, NetworkPolicy, RBAC
 charts/cluster-policies/  Kyverno 1.20 CEL policies (signatures, registries, PSS, RBAC guardrail)
@@ -28,6 +29,7 @@ platform/          namespaces (native PSA), Kyverno and Falco chart values
 detection/         Falco rules, Wazuh rules (incl. GuardDuty), agent config, AWS module, Active Response
 .github/workflows/ security (scanners + negative tests), build (Trivy, push, SBOM, Cosign), terraform
 scripts/scan.sh    all scanners in pinned containers; CI and local use the same script
+scripts/lib/       shared shell helpers: common.sh (AWS/SSM/kubectl), wazuh.sh (bundle render)
 tests/negative/    deliberately insecure fixtures the pipeline must block
 tests/policies/    Kyverno CLI test suite (attack fixtures must be rejected)
 tests/detection/   sample events replayed through wazuh-analysisd (expected rule IDs)
@@ -74,6 +76,7 @@ This needs the [Session Manager plugin](https://docs.aws.amazon.com/systems-mana
 | Gate | Tool | Fails on |
 |---|---|---|
 | Secrets | gitleaks (full history) | any detected secret |
+| Shell | shellcheck | warnings and above in any script |
 | Dockerfile | hadolint | warnings and above (e.g. `USER root`) |
 | SAST | Semgrep (Python, Dockerfile, Actions) | any finding (e.g. unpinned action, script injection) |
 | IaC | Checkov (Terraform, Dockerfile, Actions, K8s/Helm) | any failed check without an inline justified skip |
@@ -107,6 +110,15 @@ Falco (modern eBPF) writes JSON events on each node; the Wazuh agent ships them.
 Wazuh through CloudWatch Logs, CloudTrail through S3. Rules are MITRE-mapped and replayed in a real
 `wazuh-analysisd` in CI (`scripts/scan.sh detection`). `scripts/wazuh-sync.sh` pushes them to the
 manager over SSM, validates, and rolls back on error. `make deploy` runs both automatically.
+
+## Writing scripts
+
+Operator scripts source `scripts/lib/common.sh` instead of repeating lookups:
+`wazuh_instance`, `require_demo_pod`, `ssm_run` (polls; `aws ssm wait` gives up after ~100 s),
+`wazuh_query`, `port_forward_demo`, `make_tmpdir`/`on_exit`. Anything that renders
+`detection/wazuh` goes through `wazuh_render` in `scripts/lib/wazuh.sh`, so CI replays exactly
+what the manager receives. Scripts that run on a host (`detection/wazuh/apply.sh`,
+`query-alerts.sh`, the Active Response script) stay self-contained.
 
 ## Commits
 
