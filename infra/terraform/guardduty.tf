@@ -137,6 +137,7 @@ resource "aws_lambda_function" "autofix" {
   #checkov:skip=CKV_AWS_117:No VPC needed; it calls IAM, a global endpoint
   #checkov:skip=CKV_AWS_173:Env vars hold no secrets
   #checkov:skip=CKV_AWS_50:X-Ray not needed for a lab
+  #checkov:skip=CKV_AWS_115:Reserving concurrency is rejected on accounts with a low unreserved pool (found live)
   # No reserved_concurrent_executions: some accounts have a low (e.g. 10) total
   # unreserved concurrency pool, and reserving any of it there is rejected.
   # GuardDuty invokes this rarely, so an unreserved default is fine for a lab.
