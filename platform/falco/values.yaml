@@ -21,6 +21,11 @@ falcoctl:
 
 falco:
   priority: notice
+  # Report EVERY rule an event matches. Default "first" stops at the first rule
+  # in load order. Found live: `/tmp/kill -TERM falco` raised only "Exec From
+  # Writable Temp" (alert-only), never "Kill Security Agent" (Active Response),
+  # so dropping a tool in /tmp hid the more serious detection.
+  rule_matching: all
   json_output: true
   json_include_output_property: true
   json_include_output_fields_property: true
